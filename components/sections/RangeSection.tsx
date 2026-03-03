@@ -1,195 +1,68 @@
 export default function RangeSection() {
+  const products = [
+    { name: "Energy Release", img: "https://www.figma.com/api/mcp/asset/7abb1c5a-372f-4e94-9054-521bbbf8b180", size: "large" },
+    { name: "Muscle Fuel", img: "https://www.figma.com/api/mcp/asset/ea9e0723-ff80-44bc-8c16-91f8bc6f320f", size: "large" },
+    { name: "Immunity", img: "https://www.figma.com/api/mcp/asset/52af06f0-836b-4599-9041-a9db399f29bf", size: "wide" },
+    { name: "Collagen", img: "https://www.figma.com/api/mcp/asset/0e2f7327-7746-4f9e-bbbd-4c21798a6279", size: "wide" },
+    { name: "Neuro", img: "https://www.figma.com/api/mcp/asset/2ee919c6-b8cb-4826-9fb9-257b0084d44c", size: "small" },
+    { name: "ED", img: "https://www.figma.com/api/mcp/asset/f5396908-1073-42b8-a8cd-f61832b9fc56", size: "small" },
+    { name: "NMN-NAD+", img: "https://www.figma.com/api/mcp/asset/a849640c-02f5-4fd2-b8d1-f6738c030dc4", size: "small" },
+  ];
+
   return (
-    <div
-      className="bg-white h-[903px] relative rounded-[10.922px] shrink-0 w-[1252px]"
-      data-name="Benefits/features"
-      data-node-id="449:194"
+    <section
+      className="bg-white py-12 md:py-16 px-6 md:px-10 rounded-[16px] w-full max-w-[1252px]"
+      data-name="Range Section"
     >
-      <div
-        className="-translate-x-1/2 absolute content-stretch flex flex-col gap-[40px] items-center left-[calc(50%+0.5px)] top-[53px] w-[1191px]"
-        data-node-id="449:195"
-      >
-        <div
-          className="content-stretch flex flex-col gap-[16px] items-center not-italic relative shrink-0 text-center w-[946px]"
-          data-name="Headline"
-          data-node-id="449:196"
-        >
-          <h5
-            className="block font-['Satoshi:Medium',sans-serif] leading-none relative shrink-0 text-[#190f0d] text-[50px] tracking-[-1px] w-full"
-            data-node-id="449:197"
-          >
+      <div className="flex flex-col gap-10 md:gap-12 items-center">
+        {/* Headline */}
+        <div className="text-center flex flex-col gap-4 max-w-[800px]">
+          <h2 className="text-[#190f0d] text-[32px] sm:text-[40px] md:text-[50px] font-['Satoshi:Medium',sans-serif] leading-tight tracking-[-1px]">
             View our Range
-          </h5>
-          <div
-            className="flex flex-col font-['Satoshi:Regular',sans-serif] justify-center leading-[0] relative shrink-0 text-[22px] text-[#333333] tracking-[0.22px] w-full"
-            data-node-id="449:198"
-          >
-            <p className="leading-[1.4]">
-              Discover our targeted wellness patches designed for your unique
-              needs
-            </p>
-          </div>
+          </h2>
+          <p className="text-[#333333] text-[18px] md:text-[22px] font-['Satoshi:Regular',sans-serif] leading-relaxed">
+            Discover our targeted wellness patches designed for your unique needs
+          </p>
         </div>
-        <div
-          className="content-stretch flex gap-[20px] items-start relative shrink-0 w-full"
-          data-node-id="449:199"
-        >
-          <div
-            className="content-stretch flex gap-[20px] items-center relative shrink-0"
-            data-node-id="449:200"
-          >
-            <div
-              className="bg-[#cfcfcf] h-[398px] overflow-clip relative rounded-[16px] shrink-0 w-[278px]"
-              data-node-id="449:201"
-            >
-              <div
-                className="absolute h-[430px] left-[-29px] top-[-31px] w-[782px]"
-                data-name="energy-release"
-                data-node-id="449:202"
-              >
-                <img
-                  alt=""
-                  className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
-                  src="https://www.figma.com/api/mcp/asset/7abb1c5a-372f-4e94-9054-521bbbf8b180"
-                />
-              </div>
+
+        {/* Product Grid */}
+        <div className="w-full flex flex-col gap-5">
+          {/* Top Row for Desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Energy Release */}
+            <div className="bg-[#cfcfcf] h-[300px] md:h-[398px] overflow-hidden rounded-[16px] relative group cursor-pointer lg:col-span-1">
+              <img src={products[0].img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
             </div>
-            <div
-              className="h-[398px] overflow-clip relative rounded-[16px] shrink-0 w-[278px]"
-              data-node-id="449:203"
-              style={{
-                backgroundImage:
-                  "url('data:image/svg+xml;utf8,<svg viewBox=\\'0 0 278 398\\' xmlns=\\'http://www.w3.org/2000/svg\\' preserveAspectRatio=\\'none\\'><rect x=\\'0\\' y=\\'0\\' height=\\'100%\\' width=\\'100%\\' fill=\\'url(%23grad)\\' opacity=\\'1\\'/><defs><radialGradient id=\\'grad\\' gradientUnits=\\'userSpaceOnUse\\' cx=\\'0\\' cy=\\'0\\' r=\\'10\\' gradientTransform=\\'matrix(8.5113e-16 19.9 -13.9 1.2185e-15 139 199)\\'><stop stop-color=\\'rgba(181,172,157,1)\\' offset=\\'0\\'/><stop stop-color=\\'rgba(139,128,110,1)\\' offset=\\'1\\'/></radialGradient></defs></svg>')",
-              }}
-            >
-              <div
-                className="-translate-x-1/2 absolute h-[443px] left-[calc(50%+225.5px)] top-[-45px] w-[805px]"
-                data-name="muscle-fuel"
-                data-node-id="449:204"
-              >
-                <img
-                  alt=""
-                  className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
-                  src="https://www.figma.com/api/mcp/asset/ea9e0723-ff80-44bc-8c16-91f8bc6f320f"
-                />
+            {/* Muscle Fuel */}
+            <div className="bg-[#cfcfcf] h-[300px] md:h-[398px] overflow-hidden rounded-[16px] relative group cursor-pointer lg:col-span-1">
+              <img src={products[1].img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            </div>
+            {/* Wide stack for Immunity and Collagen */}
+            <div className="flex flex-col gap-5 md:col-span-2 lg:col-span-2">
+              <div className="bg-[#cfcfcf] h-[190px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+                <img src={products[2].img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-md px-3 py-1 rounded-md text-white text-sm">Immunity</div>
+              </div>
+              <div className="bg-[#cfcfcf] h-[190px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+                <img src={products[3].img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
               </div>
             </div>
           </div>
-          <div
-            className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-[588px]"
-            data-node-id="449:205"
-          >
-            <div
-              className="bg-[#cfcfcf] h-[192px] overflow-clip relative rounded-[16px] shrink-0 w-full"
-              data-node-id="449:206"
-            >
-              <div
-                className="absolute blur-[2.85px] h-[323px] left-0 top-[-110px] w-[588px]"
-                data-name="immunity"
-                data-node-id="449:207"
-              >
-                <img
-                  alt=""
-                  className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
-                  src="https://www.figma.com/api/mcp/asset/52af06f0-836b-4599-9041-a9db399f29bf"
-                />
-              </div>
-              <div
-                className="absolute backdrop-blur-[10px] bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] border-solid content-stretch flex items-center justify-center left-[452px] p-[10px] rounded-[10px] top-[14px]"
-                data-node-id="449:208"
-              >
-                <div
-                  className="flex flex-col font-['Satoshi:Medium',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[20px] text-white tracking-[0.2px] whitespace-nowrap"
-                  data-node-id="449:209"
-                >
-                  <p className="leading-[1.4]">Immunity</p>
-                </div>
-              </div>
-              {/* <div
-                className="absolute backdrop-blur-[7.05px] bg-white h-[44px] left-[420px] overflow-clip rounded-[10px] top-[131px] w-[138px]"
-                data-node-id="449:210"
-              >
-                <div
-                  className="-translate-y-1/2 absolute flex flex-col font-['Satoshi:Medium',sans-serif] justify-center leading-[0] left-[calc(50%-41px)] not-italic text-[20px] text-black top-[22px] tracking-[0.2px] whitespace-nowrap"
-                  data-node-id="449:211"
-                >
-                  <p className="leading-[1.4]">Buy Now</p>
-                </div>
-              </div> */}
+
+          {/* Bottom Row for Desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="bg-[#cfcfcf] h-[220px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+              <img src={products[4].img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
             </div>
-            <div
-              className="bg-[#cfcfcf] h-[192px] overflow-clip relative rounded-[16px] shrink-0 w-full"
-              data-node-id="449:212"
-            >
-              <div
-                className="absolute h-[279px] left-[-16px] top-[-44px] w-[620px]"
-                data-name="IVpatch-collagen"
-                data-node-id="449:213"
-              >
-                <img
-                  alt=""
-                  className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
-                  src="https://www.figma.com/api/mcp/asset/0e2f7327-7746-4f9e-bbbd-4c21798a6279"
-                />
-              </div>
+            <div className="bg-[#cfcfcf] h-[220px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+              <img src={products[5].img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
             </div>
-          </div>
-        </div>
-        <div
-          className="content-stretch flex gap-[13px] items-center relative shrink-0 w-full"
-          data-node-id="449:214"
-        >
-          <div
-            className="bg-[#cfcfcf] h-[220px] overflow-clip relative rounded-[16px] shrink-0 w-[381px]"
-            data-node-id="449:215"
-          >
-            <div
-              className="absolute h-[237px] left-0 top-[-17px] w-[431px]"
-              data-name="neuro"
-              data-node-id="449:216"
-            >
-              <img
-                alt=""
-                className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
-                src="https://www.figma.com/api/mcp/asset/2ee919c6-b8cb-4826-9fb9-257b0084d44c"
-              />
-            </div>
-          </div>
-          <div
-            className="bg-[#cfcfcf] h-[220px] overflow-clip relative rounded-[16px] shrink-0 w-[392px]"
-            data-node-id="449:217"
-          >
-            <div
-              className="-translate-y-1/2 absolute h-[247px] left-0 top-[calc(50%-13.5px)] w-[449px]"
-              data-name="ED"
-              data-node-id="449:218"
-            >
-              <img
-                alt=""
-                className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
-                src="https://www.figma.com/api/mcp/asset/f5396908-1073-42b8-a8cd-f61832b9fc56"
-              />
-            </div>
-          </div>
-          <div
-            className="bg-[#cfcfcf] h-[220px] overflow-clip relative rounded-[16px] shrink-0 w-[392px]"
-            data-node-id="449:219"
-          >
-            <div
-              className="absolute h-[242px] left-[-16px] top-[-11px] w-[440px]"
-              data-name="NMN-NAD+"
-              data-node-id="449:220"
-            >
-              <img
-                alt=""
-                className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
-                src="https://www.figma.com/api/mcp/asset/a849640c-02f5-4fd2-b8d1-f6738c030dc4"
-              />
+            <div className="bg-[#cfcfcf] h-[220px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+              <img src={products[6].img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
-

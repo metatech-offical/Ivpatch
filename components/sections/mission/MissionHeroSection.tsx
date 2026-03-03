@@ -1,194 +1,107 @@
 export default function MissionHeroSection() {
+  const footerBadges = [
+    ["Steady absorption", "No digestive strain"],
+    ["Consistent daily support", "Easy to maintain"],
+    ["No needles", "No clinic visits", "Reduced nutrient loss"]
+  ];
+
   return (
-    <div
-      className="relative w-full rounded-[20px] overflow-hidden flex flex-col"
+    <section
+      className="relative w-full rounded-[20px] overflow-hidden flex flex-col gap-3"
       style={{
         background: "linear-gradient(165deg, #c8d6c3 0%, #dbd8cc 55%, #e4e0d4 100%)",
       }}
       data-name="MissionHero"
     >
-      {/* ── TOP: Product image + Heading ── */}
-      <div className="relative w-full flex" style={{ minHeight: "480px" }}>
-
+      {/* Top: Product image + Heading */}
+      <div className="relative w-full flex flex-col md:flex-row min-h-[550px] md:min-h-[480px]">
         {/* Left: layered hand + product box images */}
-        <div className="relative w-[52%] overflow-hidden" style={{ minHeight: "600px" }}>
-          {/* Base: hand + box SVG */}
+        <div className="relative w-full md:w-[52%] h-[350px] sm:h-[400px] md:h-auto overflow-hidden">
           <img
             alt="Hand holding IVPATCH product box"
             src="/hand-box.svg"
-            className="absolute max-w-none object-contain object-bottom"
-            style={{ width: "135%", left: "-28%", bottom: "-30%", maxHeight: "720px" }}
+            className="absolute max-w-none md:max-w-full md:object-contain object-bottom w-[140%] sm:w-[120%] md:w-[135%] left-[35%] -translate-x-1/2 md:translate-x-0 md:left-[-25%] bottom-[-5%] sm:bottom-[-10%] md:bottom-[-30%] h-full"
           />
         </div>
 
         {/* Right: Heading + Button */}
-        <div className="flex-1 flex flex-col justify-center pl-[36px] pr-[56px] py-[50px]">
+        <div className="flex-1 flex flex-col justify-start md:justify-center px-6 md:pl-[36px] md:pr-[56px] pb-12 pt-4 md:py-[50px] text-center md:text-left z-10">
           <h1
-            className="text-[64px] leading-[1.08] text-black mb-[30px]"
-            style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 400, letterSpacing: "-1px" }}
+            className="text-[44px] sm:text-[52px] md:text-[64px] leading-[1.1] text-black mb-10 md:mb-[30px] font-['Satoshi',sans-serif] tracking-[-1px]"
+            style={{ fontWeight: 500 }}
           >
-            Support that<br />Feels Natural
+            Support that<br /> Feels Natural
           </h1>
-          <div
-            className="inline-flex items-center self-start px-[24px] py-[12px] rounded-[50px] cursor-pointer"
-            style={{
-              background: "rgba(26,26,26,0.88)",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(0,0,0,0.15)",
-            }}
-          >
-            <span
-              className="text-white text-[19px] tracking-[0.38px] whitespace-nowrap"
-              style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 700 }}
+          <div className="flex justify-center md:justify-start">
+            <button
+              className="inline-flex items-center px-12 py-4 rounded-full cursor-pointer bg-[#1a1a1a] border border-black/15 text-white text-[18px] md:text-[19px] font-bold tracking-[0.38px] hover:bg-black transition-all active:scale-95 shadow-[0_10px_20px_rgba(0,0,0,0.2)]"
             >
               View the Range
-            </span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── ROW 1: 95% + 24 Hours | Backed by Science ── */}
-      <div className="flex gap-[12px] px-[20px] pb-[12px]">
-
+      {/* Row 1: 95% + 24 Hours | Backed by Science */}
+      <div className="flex flex-col lg:flex-row gap-3 px-3 md:px-5 pb-3">
         {/* Left column: 95% + 24 Hours stacked */}
-        <div className="flex flex-col gap-[12px] w-[340px] shrink-0">
+        <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-[340px] shrink-0">
           {/* 95% */}
-          <div
-            className="rounded-[14px] p-[28px] flex flex-col"
-            style={{
-              background: "rgba(255,255,255,0.55)",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.6)",
-              minHeight: "200px",
-            }}
-          >
-            <p
-              className="text-[48px] leading-[1.05] text-black"
-              style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500 }}
-            >
-              95%
-            </p>
-            <p
-              className="text-[16px] leading-[1.55] text-[#555] mt-auto pt-[16px]"
-              style={{ fontFamily: "'Satoshi', sans-serif" }}
-            >
+          <div className="flex-1 rounded-[14px] p-6 md:p-8 flex flex-col bg-white/55 backdrop-blur-xl border border-white/60 min-h-[180px]">
+            <span className="text-[40px] md:text-[48px] font-medium text-black">95%</span>
+            <p className="text-[15px] md:text-[16px] leading-relaxed text-[#555] mt-auto">
               This 95% absorption rate ensures faster, more effective results with no stomach discomfort.
             </p>
           </div>
-
           {/* 24 Hours */}
-          <div
-            className="rounded-[14px] p-[28px] flex flex-col"
-            style={{
-              background: "rgba(255,255,255,0.55)",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.6)",
-              minHeight: "200px",
-            }}
-          >
-            <p
-              className="text-[48px] leading-[1.05] text-black"
-              style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500 }}
-            >
-              24 Hours
-            </p>
-            <p
-              className="text-[16px] leading-[1.55] text-[#555] mt-auto pt-[16px]"
-              style={{ fontFamily: "'Satoshi', sans-serif" }}
-            >
+          <div className="flex-1 rounded-[14px] p-6 md:p-8 flex flex-col bg-white/55 backdrop-blur-xl border border-white/60 min-h-[180px]">
+            <span className="text-[40px] md:text-[48px] font-medium text-black">24 Hours</span>
+            <p className="text-[15px] md:text-[16px] leading-relaxed text-[#555] mt-auto">
               of steady, controlled nutrient release from a single patch.
             </p>
           </div>
         </div>
 
         {/* Right: Backed by Science */}
-        <div
-          className="flex-1 rounded-[14px] overflow-hidden relative"
-          style={{
-            background: "rgba(255,255,255,0.45)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid rgba(255,255,255,0.6)",
-            minHeight: "412px",
-          }}
-        >
-          {/* Woman photo — right side */}
-          <div className="absolute right-0 top-0 bottom-0 w-[40%]">
+        <div className="flex-1 rounded-[14px] overflow-hidden relative bg-white/45 backdrop-blur-xl border border-white/60 flex flex-col sm:flex-row min-h-[400px]">
+          {/* Text content */}
+          <div className="flex-1 p-6 md:p-10 flex flex-col justify-start relative z-10">
+            <h2 className="text-[32px] md:text-[36px] font-medium text-black mb-4">Backed by Science</h2>
+            <p className="text-[15px] md:text-[16px] leading-relaxed text-[#555] max-w-[500px]">
+              The skin has the ability to absorb certain vitamins and minerals directly. When these nutrients have a molecular weight of 500 Daltons or less, our skin can pick it up. Unlike oral supplements, which must pass through the digestive system (losing potency along the way), our patches deliver nutrients directly through the skin and into the bloodstream. This 95% absorption rate ensures faster, more effective results with no stomach discomfort.
+            </p>
+          </div>
+          {/* Profile image - Hidden or positioned well on mobile */}
+          <div className="relative w-full sm:w-[35%] lg:w-[40%] h-[250px] sm:h-auto">
             <img
-              alt="Woman smiling"
+              alt="Scientifically backed results"
               src="https://www.figma.com/api/mcp/asset/e821f484-64e5-460e-815a-fa595c168c9f"
               className="w-full h-full object-cover object-top"
             />
           </div>
-          {/* Text — left side */}
-          <div className="absolute left-0 top-0 bottom-0 w-[60%] p-[32px] flex flex-col justify-start">
-            <h2
-              className="text-[36px] leading-[1.1] text-black mb-[16px]"
-              style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500 }}
-            >
-              Backed by Science
-            </h2>
-            <p
-              className="text-[16px] leading-[1.65] text-[#555]"
-              style={{ fontFamily: "'Satoshi', sans-serif" }}
-            >
-              The skin has the ability to absorb certain vitamins and mineral
-              directly. When these nutrients have a molecular weight of 500
-              Daltons or less, our skin can pick it up. Unlike oral supplements,
-              which must pass through the digestive system (losing potency along
-              the way), our patches deliver nutrients directly through the skin
-              and into the bloodstream. This 95% absorption rate ensures faster,
-              more effective results with no stomach discomfort.
-            </p>
-          </div>
         </div>
       </div>
 
-      {/* ── ROW 2: You Deserve Better | Up to 5x ── */}
-      <div className="flex gap-[12px] px-[20px] pb-[20px]">
-
+      {/* Row 2: You Deserve Better | Up to 5x */}
+      <div className="flex flex-col lg:flex-row gap-3 px-3 md:px-5 pb-5">
         {/* You Deserve Better */}
-        <div
-          className="flex-1 rounded-[14px] overflow-hidden relative"
-          style={{ minHeight: "310px" }}
-        >
+        <div className="flex-1 rounded-[14px] overflow-hidden relative min-h-[350px] md:min-h-[310px]">
           <div className="absolute inset-0">
             <img
               alt="Person exercising"
               src="https://www.figma.com/api/mcp/asset/5b901abf-7cb2-4dbe-9b14-d324a8bb36d3"
               className="w-full h-full object-cover"
             />
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(110deg, rgba(0,0,0,0.62) 30%, rgba(0,0,0,0.08) 80%)",
-              }}
-            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
           </div>
-          <div className="relative z-10 p-[30px] h-full flex flex-col justify-between">
-            <h2
-              className="text-[40px] leading-[1.1] text-white"
-              style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500 }}
-            >
-              You deserve Better
-            </h2>
-            <div className="flex flex-col gap-[8px] mt-auto pt-[20px]">
-              <div className="flex flex-wrap gap-[7px]">
-                {["Steady absorption", "No digestive strain", "Consistent daily support"].map((l) => (
+          <div className="relative z-10 p-6 md:p-10 h-full flex flex-col justify-between">
+            <h2 className="text-[36px] md:text-[40px] font-medium text-white">You deserve Better</h2>
+            <div className="flex flex-col gap-2 mt-auto">
+              <div className="flex flex-wrap gap-2">
+                {["Steady absorption", "No digestive strain", "Consistent daily support", "Easy to maintain", "No needles", "No clinic visits"].map((l) => (
                   <span
                     key={l}
-                    className="text-[#444] text-[14px] px-[12px] py-[6px] rounded-[8px] whitespace-nowrap"
-                    style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, background: "#d3dccf" }}
-                  >
-                    {l}
-                  </span>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-[7px]">
-                {["Easy to maintain", "No needles", "No clinic visits", "Reduced nutrient loss"].map((l) => (
-                  <span
-                    key={l}
-                    className="text-[#444] text-[14px] px-[12px] py-[6px] rounded-[8px] whitespace-nowrap"
-                    style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, background: "#d3dccf" }}
+                    className="bg-[#d3dccf] text-[#444] text-[12px] md:text-[14px] px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
                   >
                     {l}
                   </span>
@@ -199,29 +112,13 @@ export default function MissionHeroSection() {
         </div>
 
         {/* Up to 5x */}
-        <div
-          className="w-[400px] shrink-0 rounded-[14px] p-[30px] flex flex-col"
-          style={{
-            background: "rgba(255,255,255,0.55)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid rgba(255,255,255,0.6)",
-          }}
-        >
-          <p
-            className="text-[48px] leading-[1.05] text-black"
-            style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500 }}
-          >
-            Up to 5×
-          </p>
-          <p
-            className="text-[16px] leading-[1.65] text-[#555] mt-auto pt-[48px]"
-            style={{ fontFamily: "'Satoshi', sans-serif" }}
-          >
-            more efficient nutrient utilization compared to traditional oral
-            supplements, based on delivery method and reduced digestive breakdown.
+        <div className="lg:w-[400px] shrink-0 rounded-[14px] p-8 flex flex-col bg-white/55 backdrop-blur-xl border border-white/60 min-h-[220px]">
+          <span className="text-[40px] md:text-[48px] font-medium text-black">Up to 5×</span>
+          <p className="text-[15px] md:text-[16px] leading-relaxed text-[#555] mt-auto pt-8">
+            more efficient nutrient utilization compared to traditional oral supplements, based on delivery method and reduced digestive breakdown.
           </p>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

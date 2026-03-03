@@ -1,115 +1,44 @@
 export default function BenefitsHeroSection() {
   return (
-    <div
-      className="bg-gradient-to-b from-[#425142] from-[62.996%] to-[rgba(54,100,54,0.73)] h-[731px] overflow-clip relative rounded-[16px] shrink-0 w-[1252px]"
+    <section
+      className="bg-gradient-to-b from-[#425142] to-[#366436]/70 min-h-[500px] md:h-[731px] overflow-hidden relative rounded-[16px] w-full max-w-[1252px]"
       data-name="Benefits hero"
-      data-node-id="373:771"
     >
-      <div className="-translate-x-1/2 absolute flex h-[731px] items-center justify-center left-[calc(50%+155.5px)] top-0 w-[925px]">
-        <div className="-scale-y-100 flex-none rotate-180">
-          <div
-            className="h-[731px] relative w-[925px]"
-            data-name="image-removebg-preview (9) 1"
-            data-node-id="373:772"
-          >
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <img
-                alt=""
-                className="absolute h-[158%] left-[-0.01%] max-w-none top-[-13.82%] w-[100.03%]"
-                src="https://www.figma.com/api/mcp/asset/829ec289-1dfd-4987-9ec9-8640d7373291"
-              />
-            </div>
+      <div className="flex flex-col md:flex-row h-full">
+        {/* Text Content */}
+        <div className="flex-1 flex flex-col justify-center px-8 md:px-[70px] py-16 md:py-0 gap-6 md:gap-[20px] text-center md:text-left z-10">
+          <h1 className="font-['Satoshi:Bold',sans-serif] text-[48px] sm:text-[60px] md:text-[60px] text-white leading-tight tracking-[-1.2px]">
+            Feel The Difference
+          </h1>
+          <div className="font-['Satoshi:Regular',sans-serif] text-[18px] md:text-[22px] text-white/90 leading-relaxed tracking-[0.22px]">
+            <p>Discover the next level of wellness</p>
+            <p>with our premium transdermal patches.</p>
+          </div>
+          <div className="flex justify-center md:justify-start">
+            <button className="bg-white px-8 py-3 rounded-[16px] shadow-xl hover:bg-white/90 transition-all active:scale-95">
+              <span className="font-['Satoshi:Bold',sans-serif] text-[20px] md:text-[24px] text-black tracking-[0.48px]">
+                Get the Patch
+              </span>
+            </button>
           </div>
         </div>
-      </div>
 
-      <div
-        className="absolute content-stretch flex flex-col gap-[20px] items-start left-[70px] top-[233px] w-[388px]"
-        data-node-id="373:773"
-      >
-        <h5
-          className="block font-['Satoshi:Bold',sans-serif] leading-none min-w-full not-italic relative shrink-0 text-[60px] text-white tracking-[-1.2px] w-[min-content]"
-          data-node-id="373:774"
-        >
-          Feel The Difference
-        </h5>
-        <div
-          className="flex flex-col font-['Satoshi:Regular',sans-serif] justify-center leading-[1.4] min-w-full not-italic relative shrink-0 text-[22px] text-white tracking-[0.22px] w-[min-content]"
-          data-node-id="373:775"
-        >
-          <p className="mb-0">Discover the next level of wellness</p>
-          <p className="mb-0">with our premium transdermal</p>
-          <p>Patches.</p>
-        </div>
-        <div
-          className="backdrop-blur-[11.15px] bg-white border border-[rgba(0,0,0,0.15)] border-solid content-stretch flex items-start overflow-clip px-[22px] py-[9px] relative rounded-[16px] shrink-0"
-          data-node-id="373:776"
-        >
-          <div
-            className="flex flex-col font-['Satoshi:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[24px] text-black tracking-[0.48px] whitespace-nowrap"
-            data-node-id="373:777"
-          >
-            <p className="leading-[1.4]">Get the Patch</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute contents left-[780px] top-[338px]" data-node-id="373:778">
-        {Array.from({ length: 5 }).map((_, idx) => (
-          <div
-            key={idx}
-            className="absolute h-[11.417px] w-[9.641px]"
-            style={{
-              left: `${780 + (idx > 0 ? 0.83 : 0)}px`,
-              top: `${338 + idx * 9.16}px`,
-            }}
-          >
+        {/* Hero Image - Optimized for desktop/mobile positioning */}
+        <div className="flex-1 relative h-[300px] md:h-auto overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center md:translate-x-12 translate-y-8 md:translate-y-0">
             <img
-              alt=""
-              className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
-              src="https://www.figma.com/api/mcp/asset/8d063a0b-7709-43d3-9eb0-0f4615db7a97"
+              alt="Premium wellnes patch"
+              className="w-[120%] md:w-[925px] h-full object-contain md:object-cover scale-x-[-1] opacity-90"
+              src="https://www.figma.com/api/mcp/asset/829ec289-1dfd-4987-9ec9-8640d7373291"
             />
           </div>
-        ))}
+        </div>
       </div>
 
-      <div
-        className="absolute left-[758px] size-[56px] top-[335px]"
-        data-node-id="373:784"
-      >
-        <img
-          alt=""
-          className="absolute block max-w-none size-full"
-          src="https://www.figma.com/api/mcp/asset/2deeb4df-1f00-4287-9f78-937186efd8e6"
-        />
+      {/* Decorative Elements - Hidden on mobile or made subtle */}
+      <div className="hidden md:block absolute right-[15%] top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+        {/* Custom decorative dots/shapes if needed */}
       </div>
-      <div className="absolute flex h-[15px] items-center justify-center left-[774px] top-[356px] w-[10px]">
-        <div className="-rotate-90 flex-none">
-          <div className="h-[10px] relative w-[15px]" data-node-id="373:785">
-            <div className="absolute bottom-1/4 left-[6.7%] right-[6.7%] top-0">
-              <img
-                alt=""
-                className="block max-w-none size-full"
-                src="https://www.figma.com/api/mcp/asset/c3b6e09c-1358-415a-b54d-b1ceb3a8d39a"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="absolute flex h-[15px] items-center justify-center left-[789px] top-[356px] w-[10px]">
-        <div className="-rotate-90 -scale-y-100 flex-none">
-          <div className="h-[10px] relative w-[15px]" data-node-id="373:786">
-            <div className="absolute bottom-1/4 left-[6.7%] right-[6.7%] top-0">
-              <img
-                alt=""
-                className="block max-w-none size-full"
-                src="https://www.figma.com/api/mcp/asset/91f7a5c4-eaba-4850-bbea-e7335248ab6c"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 }
-
