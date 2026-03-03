@@ -1,14 +1,25 @@
 export default function BenefitsHeroSection() {
   return (
     <section
-      className="bg-gradient-to-b from-[#425142] to-[#366436]/70 min-h-[500px] md:h-[731px] overflow-hidden relative rounded-[16px] w-full max-w-[1252px]"
+      className="bg-[#366436] min-h-[500px] md:h-[731px] overflow-hidden relative rounded-[16px] w-full max-w-[1252px]"
       data-name="Benefits hero"
     >
-      <div className="flex flex-col md:flex-row h-full">
+      {/* Background Image - Desktop only as requested */}
+      <div className="hidden md:block absolute inset-0 z-0">
+        <img
+          alt=""
+          className="w-full h-full object-cover"
+          src="/benefits-bg.svg"
+        />
+        <div className="absolute inset-0 bg-black/5" />
+      </div>
+
+      <div className="relative z-10 flex flex-col md:flex-row h-full">
         {/* Text Content */}
-        <div className="flex-1 flex flex-col justify-center px-8 md:px-[70px] py-16 md:py-0 gap-6 md:gap-[20px] text-center md:text-left z-10">
+        <div className="flex-1 flex flex-col justify-center px-8 md:px-[70px] py-16 md:py-0 gap-6 md:gap-[20px] text-center md:text-left">
           <h1 className="font-['Satoshi:Bold',sans-serif] text-[48px] sm:text-[60px] md:text-[60px] text-white leading-tight tracking-[-1.2px]">
-            Feel The Difference
+            Feel The <br />
+            Difference
           </h1>
           <div className="font-['Satoshi:Regular',sans-serif] text-[18px] md:text-[22px] text-white/90 leading-relaxed tracking-[0.22px]">
             <p>Discover the next level of wellness</p>
@@ -23,16 +34,8 @@ export default function BenefitsHeroSection() {
           </div>
         </div>
 
-        {/* Hero Image - Optimized for desktop/mobile positioning */}
-        <div className="flex-1 relative h-[300px] md:h-auto overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center md:translate-x-12 translate-y-8 md:translate-y-0">
-            <img
-              alt="Premium wellnes patch"
-              className="w-[120%] md:w-[925px] h-full object-contain md:object-cover scale-x-[-1] opacity-90"
-              src="https://www.figma.com/api/mcp/asset/829ec289-1dfd-4987-9ec9-8640d7373291"
-            />
-          </div>
-        </div>
+        {/* Empty space for layout balance if needed */}
+        <div className="flex-1" />
       </div>
 
       {/* Decorative Elements - Hidden on mobile or made subtle */}

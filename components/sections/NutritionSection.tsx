@@ -10,15 +10,13 @@ export default function NutritionSection() {
       className="bg-[#aab9a9] py-12 md:py-0 md:h-[528px] overflow-hidden relative rounded-[16px] w-full max-w-[1252px]"
       data-name="Nutrition Section"
     >
-      {/* Background Accent - Adjusted for mobile */}
-      <div className="absolute right-[-10%] md:right-[-5%] top-[-10%] opacity-20 md:opacity-100 pointer-events-none">
-        <div className="rotate-[-30deg]">
-          <img
-            alt=""
-            className="w-[300px] md:w-[724px] h-auto"
-            src="https://www.figma.com/api/mcp/asset/54b3397d-0128-4d03-81d1-f1278da1f546"
-          />
-        </div>
+      {/* Background Accent - Desktop only as requested */}
+      <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden">
+        <img
+          alt="Nutrition background hand"
+          src="/hand.svg"
+          className="w-full h-full object-cover object-right-bottom"
+        />
       </div>
 
       <div className="relative z-10 h-full flex flex-col md:flex-row items-center px-6 md:px-12 gap-10 md:gap-0">
@@ -37,10 +35,10 @@ export default function NutritionSection() {
           </div>
         </div>
 
-        {/* Floating Stats - Hidden on mobile or restructured */}
-        <div className="flex flex-wrap md:flex-col items-center justify-center gap-6 md:gap-12 md:ml-auto">
+        {/* Floating Stats - Hidden on desktop as requested */}
+        <div className="flex flex-wrap md:hidden items-center justify-center gap-6 p-2">
           {stats.map((stat, idx) => (
-            <div key={idx} className="relative w-[100px] md:w-[122px] h-[100px] md:h-[122px] flex flex-col items-center justify-center text-center p-2">
+            <div key={idx} className="relative w-[100px] h-[100px] flex flex-col items-center justify-center text-center">
               <img
                 src={stat.icon}
                 className="absolute inset-0 w-full h-full object-contain opacity-80"
@@ -50,21 +48,12 @@ export default function NutritionSection() {
                 {stat.value !== "Natural" && (
                   <span className="text-white font-bold text-lg leading-tight">{stat.value}</span>
                 )}
-                <span className="text-white text-[10px] md:text-[12px] font-['Satoshi:Medium',sans-serif] leading-tight px-2">
+                <span className="text-white text-[10px] font-['Satoshi:Medium',sans-serif] leading-tight px-2">
                   {stat.label}
                 </span>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Right Product Image - Adjusted for desktop only mockup style */}
-        <div className="hidden lg:block absolute right-0 bottom-0 h-full w-[450px]">
-          <img
-            alt=""
-            className="w-full h-full object-contain object-bottom translate-x-12"
-            src="https://www.figma.com/api/mcp/asset/3f78b4f0-4d36-4cb5-b1b3-134687f8fecc"
-          />
         </div>
       </div>
     </section>

@@ -34,7 +34,7 @@ export default function WellnessSection() {
           <div className="lg:flex-[1.2] relative bg-[#f3ebe2] rounded-[16px] overflow-hidden group h-[400px] md:h-[669px]">
             <img
               alt="Model with patch"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
               src="https://www.figma.com/api/mcp/asset/9b56e960-5b42-4831-804b-411c875415e4"
             />
             {/* Feature Floating Badge */}
@@ -66,7 +66,7 @@ export default function WellnessSection() {
               <img
                 alt="Neuroboost patch"
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                src="https://www.figma.com/api/mcp/asset/2ee919c6-b8cb-4826-9fb9-257b0084d44c"
+                src="/soil.svg"
               />
             </div>
           </div>

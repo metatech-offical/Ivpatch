@@ -51,7 +51,7 @@ export default function HeroSection() {
 
   return (
     <div
-      className="h-[500px] sm:h-[600px] md:h-[731px] overflow-hidden relative rounded-[16px] shrink-0 w-full max-w-[1252px]"
+      className="h-[400px] sm:h-[500px] md:h-[731px] overflow-hidden relative rounded-[16px] shrink-0 w-full max-w-[1252px]"
       data-name="Hero Slider"
     >
       <style>{`
@@ -75,7 +75,7 @@ export default function HeroSection() {
             <div key={index} className="w-full h-full shrink-0 relative overflow-hidden">
               <img
                 alt={`Hero slide ${index}`}
-                className="w-full h-full object-cover pointer-events-none"
+                className="w-full h-full object-cover object-center pointer-events-none"
                 src={slide.image}
               />
               <div className="absolute inset-0 bg-black/10 md:bg-black/5 pointer-events-none" />

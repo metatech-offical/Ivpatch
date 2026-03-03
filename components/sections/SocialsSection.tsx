@@ -24,7 +24,7 @@ export default function SocialsSection() {
         {socialImages.map((img, idx) => (
           <div
             key={idx}
-            className="min-w-[280px] md:min-w-0 md:flex-1 h-[400px] md:h-[439px] relative overflow-hidden rounded-[16px] group cursor-pointer"
+            className="min-w-[280px] md:min-w-0 md:flex-1 h-[320px] sm:h-[350px] md:h-[439px] relative overflow-hidden rounded-[16px] group cursor-pointer"
             style={{
               backgroundImage:
                 "linear-gradient(168.1639735692974deg, rgba(255, 255, 255, 0) 2.2224%, rgba(255, 255, 255, 0.2) 93.92%), linear-gradient(179.41270624985742deg, rgb(182, 184, 183) 0%, rgb(178, 174, 175) 14.209%, rgb(171, 171, 171) 26.17%, rgb(163, 163, 163) 41.764%, rgb(161, 161, 161) 67.223%, rgb(171, 168, 163) 99.369%)",
@@ -32,7 +32,7 @@ export default function SocialsSection() {
           >
             <img
               alt={`Social post ${idx + 1}`}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-110"
               src={img}
             />
             {idx === 2 && (

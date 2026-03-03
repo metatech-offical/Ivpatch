@@ -20,7 +20,7 @@ export default function MissionHeroSection() {
           <img
             alt="Hand holding IVPATCH product box"
             src="/hand-box.svg"
-            className="absolute max-w-none md:max-w-full md:object-contain object-bottom w-[140%] sm:w-[120%] md:w-[135%] left-[35%] -translate-x-1/2 md:translate-x-0 md:left-[-25%] bottom-[-5%] sm:bottom-[-10%] md:bottom-[-30%] h-full"
+            className="absolute max-w-none md:max-w-full md:object-contain object-bottom w-[140%] sm:w-[120%] md:w-[135%] left-1/2 -translate-x-1/2 md:translate-x-0 md:left-[-25%] bottom-[-5%] sm:bottom-[-10%] md:bottom-[-30%] h-full"
           />
         </div>
 
@@ -76,7 +76,7 @@ export default function MissionHeroSection() {
             <img
               alt="Scientifically backed results"
               src="https://www.figma.com/api/mcp/asset/e821f484-64e5-460e-815a-fa595c168c9f"
-              className="w-full h-full object-cover object-top"
+              className="w-full h-full object-cover object-[center_20%]"
             />
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function MissionHeroSection() {
             <img
               alt="Person exercising"
               src="https://www.figma.com/api/mcp/asset/5b901abf-7cb2-4dbe-9b14-d324a8bb36d3"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-center"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
           </div>

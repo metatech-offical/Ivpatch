@@ -1,8 +1,8 @@
 export default function BenefitsProductStrip() {
   const products = Array.from({ length: 7 }).map((_, idx) => ({
     img: idx === 2
-      ? "https://www.figma.com/api/mcp/asset/411434d9-6d49-4ab0-8be1-bc6a73072b4f"
-      : "https://www.figma.com/api/mcp/asset/e40fac33-2ee7-4750-96cf-d8fc122c42e7"
+      ? "/active.svg"
+      : "/inactive.svg"
   }));
 
   return (
@@ -14,12 +14,12 @@ export default function BenefitsProductStrip() {
         {products.map((p, idx) => (
           <div
             key={idx}
-            className="flex-shrink-0 w-[140px] md:w-auto aspect-[1.1] md:h-[147px] bg-white border border-black/10 rounded-[20px] shadow-sm flex items-center justify-center p-4 hover:shadow-md transition-shadow group cursor-pointer"
+            className="flex-shrink-0 w-[140px] md:w-auto aspect-[1.1] md:h-[147px] bg-white border border-black/10 rounded-[20px] shadow-sm overflow-hidden flex items-center justify-center hover:shadow-md transition-shadow group cursor-pointer"
           >
             <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
               <img
                 alt=""
-                className="w-[85%] h-auto object-contain transition-transform duration-500 group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 src={p.img}
               />
             </div>
