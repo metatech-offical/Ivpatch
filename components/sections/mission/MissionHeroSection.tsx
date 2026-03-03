@@ -20,7 +20,7 @@ export default function MissionHeroSection() {
           <img
             alt="Hand holding IVPATCH product box"
             src="/hand-box.svg"
-            className="absolute max-w-none md:max-w-full md:object-contain object-bottom w-[140%] sm:w-[120%] md:w-[135%] left-1/2 -translate-x-1/2 md:translate-x-0 md:left-[-25%] bottom-[-5%] sm:bottom-[-10%] md:bottom-[-30%] h-full"
+            className="absolute max-w-none md:max-w-full md:object-contain object-bottom w-[160%] sm:w-[120%] md:w-[135%] left-[40%] md:left-[-25%] -translate-x-1/2 md:translate-x-0 bottom-[-5%] sm:bottom-[-10%] md:bottom-[-30%] h-full"
           />
         </div>
 
