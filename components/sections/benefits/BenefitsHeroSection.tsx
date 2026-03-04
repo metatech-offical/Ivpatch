@@ -1,7 +1,7 @@
 export default function BenefitsHeroSection() {
   return (
     <section
-      className="bg-[#366436] min-h-[500px] md:h-[731px] overflow-hidden relative rounded-[16px] w-full max-w-[1252px]"
+      className="bg-[#366436] bg-gradient-to-b from-[#425a42] via-[#2d402d] to-[#0c140c] min-h-[500px] md:h-[731px] overflow-hidden relative rounded-[16px] w-full max-w-[1252px]"
       data-name="Benefits hero"
     >
       {/* Background Image - Desktop only as requested */}
