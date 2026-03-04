@@ -22,6 +22,20 @@ const IMAGES_TO_PRELOAD = [
     "https://www.figma.com/api/mcp/asset/34cfc50e-814f-4f0c-a081-09a19855ca63", // Nutrition icons
     "https://www.figma.com/api/mcp/asset/156f63b8-eb6e-4ea0-941f-aa760b2e4727", // Wellness Banner
     "https://www.figma.com/api/mcp/asset/9b56e960-5b42-4831-804b-411c875415e4", // Model with patch
+    "https://www.figma.com/api/mcp/asset/4c99db14-df7d-498f-92c2-91a1751ed24d",
+    "https://www.figma.com/api/mcp/asset/72bfc62b-94b5-4417-8f07-6c7a5ef76389",
+    "https://www.figma.com/api/mcp/asset/53dff67d-3368-47ac-8eed-c142dd2cb7ae",
+    "https://www.figma.com/api/mcp/asset/a1c206db-f0e0-4bb5-9ea1-2b0c330f7644",
+    "https://www.figma.com/api/mcp/asset/e821f484-64e5-460e-815a-fa595c168c9f",
+    "https://www.figma.com/api/mcp/asset/5b901abf-7cb2-4dbe-9b14-d324a8bb36d3",
+    "https://www.figma.com/api/mcp/asset/b007f423-3ed7-4dab-bc12-8dc8181e0d97",
+    "https://www.figma.com/api/mcp/asset/8dacf80d-ef6e-4122-9d36-3670c8d3750e",
+    "https://www.figma.com/api/mcp/asset/1e99b3e8-5e0b-4f10-8f7d-b488abec7432",
+    "https://www.figma.com/api/mcp/asset/dac07e29-3909-4344-985a-1696eb8bd03e",
+    "https://www.figma.com/api/mcp/asset/43749598-0e9f-4a8f-884a-545d5744655c",
+    "https://www.figma.com/api/mcp/asset/2f941832-45cd-4bc7-a262-4b6e15fea692",
+    "https://www.figma.com/api/mcp/asset/58ddf036-8038-45fb-b3bf-dbe7c9b2af73",
+    "https://www.figma.com/api/mcp/asset/bdc4b423-82e5-479f-a857-1eaf02ae9cf1", // Cart/Profile
 ];
 
 export default function Preloader() {
