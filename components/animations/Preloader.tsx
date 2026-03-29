@@ -90,7 +90,7 @@ export default function Preloader() {
         >
             <div className="relative w-[200px] mb-8">
                 <img
-                    src="https://www.figma.com/api/mcp/asset/5ab95cff-f10b-4eff-989f-0a5e3bc2e130"
+                    src="/iv-black-logo.svg"
                     alt="IVPATCH Logo"
                     className="w-full h-auto"
                 />

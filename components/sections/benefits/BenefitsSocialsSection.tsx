@@ -1,9 +1,9 @@
 export default function BenefitsSocialsSection() {
   const socialImages = [
-    "https://www.figma.com/api/mcp/asset/0a7807da-0e61-47bd-8262-bbb9a2e9c39b",
-    "https://www.figma.com/api/mcp/asset/4a1f553f-4340-4bdc-bd2a-75d29f1a556e",
-    "https://www.figma.com/api/mcp/asset/b684d55b-9feb-47c4-aac5-12e2784cac45",
-    "https://www.figma.com/api/mcp/asset/94914c8e-c499-4733-a512-19692efbd2d0",
+    "/img1.svg",
+    "/img2.svg",
+    "/img3.svg",
+    "/img4.svg",
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function BenefitsSocialsSection() {
             {idx === 2 && (
               <div className="absolute inset-x-6 top-6 flex items-center justify-between z-10">
                 <div className="w-8 h-8">
-                  <img src="https://www.figma.com/api/mcp/asset/dac07e29-3909-4344-985a-1696eb8bd03e" alt="Social icon" className="w-full h-full object-contain" />
+                  <img src="/x-icon.svg" alt="Social icon" className="w-full h-full object-contain" />
                 </div>
                 <span className="text-white font-['Satoshi:Regular',sans-serif] text-lg tracking-[-0.4px]">@IVPatch</span>
               </div>

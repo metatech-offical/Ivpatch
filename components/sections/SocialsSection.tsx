@@ -1,9 +1,9 @@
 export default function SocialsSection() {
   const socialImages = [
-    "https://www.figma.com/api/mcp/asset/3bc41bb9-40ae-480f-bf32-41d55e2fbcd5",
-    "https://www.figma.com/api/mcp/asset/4c46182f-7b00-431f-ac0f-48e6dcaaece1",
-    "https://www.figma.com/api/mcp/asset/d526b601-8635-46b2-856e-1559bf16bc26",
-    "https://www.figma.com/api/mcp/asset/987fa066-ae9f-456b-b4b5-10db770cf60c",
+    "/img1.svg",
+    "/img2.svg",
+    "/img3.svg",
+    "/img4.svg",
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function SocialsSection() {
             {idx === 2 && (
               <div className="absolute inset-x-6 top-6 flex items-center justify-between z-10">
                 <div className="w-8 h-8">
-                  <img src="https://www.figma.com/api/mcp/asset/53dff67d-3368-47ac-8eed-c142dd2cb7ae" alt="Social icon" className="w-full h-full object-contain" />
+                  <img src="/x-icon.svg" alt="Social icon" className="w-full h-full object-contain" />
                 </div>
                 <span className="text-white font-['Satoshi:Regular',sans-serif] text-lg tracking-[-0.4px]">@IVPatch</span>
               </div>

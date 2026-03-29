@@ -34,7 +34,7 @@ export default function RangeSection() {
               <img src={products[0].img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
             </div>
             {/* Muscle Fuel */}
-            <div className="bg-[#cfcfcf] h-[280px] md:h-[398px] overflow-hidden rounded-[16px) relative group cursor-pointer lg:col-span-1">
+            <div className="bg-[#cfcfcf] h-[280px] md:h-[398px] overflow-hidden rounded-[16px] relative group cursor-pointer lg:col-span-1">
               <img src={products[1].img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
             </div>
             {/* Wide stack for Immunity and Collagen */}

@@ -13,7 +13,7 @@ export default function MissionNewsletterSection() {
         <img
           alt=""
           className="w-full h-full object-cover opacity-40 md:opacity-100"
-          src="https://www.figma.com/api/mcp/asset/8dacf80d-ef6e-4122-9d36-3670c8d3750e"
+          src="/newsletter.svg"
         />
         <div className="absolute inset-0 bg-black/20" />
       </div>
@@ -30,7 +30,7 @@ export default function MissionNewsletterSection() {
               placeholder="Your email"
               className="flex-grow bg-transparent text-white placeholder:text-white/60 font-['Satoshi:Medium',sans-serif] text-[18px] md:text-[20px] outline-none py-2 px-1 text-center sm:text-left"
             />
-            <button className="bg-white/10 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none py-2 px-6 rounded-lg sm:rounded-none text-white/80 font-['Satoshi:Medium',sans-serif] text-[18px] md:text-[20px] hover:text-white transition-colors">
+            <button className="bg-white/10 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none py-2 px-6 rounded-lg sm:rounded-none text-white/80 font-['Satoshi:Bold',sans-serif] text-[18px] md:text-[20px] hover:text-white transition-colors">
               Submit
             </button>
           </div>

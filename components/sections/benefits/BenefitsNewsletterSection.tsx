@@ -13,7 +13,7 @@ export default function BenefitsNewsletterSection() {
         <img
           alt=""
           className="w-full h-full object-cover opacity-40 md:opacity-100"
-          src="https://www.figma.com/api/mcp/asset/43749598-0e9f-4a8f-884a-545d5744655c"
+          src="/newsletter.svg"
         />
         <div className="absolute inset-0 bg-black/20" />
       </div>

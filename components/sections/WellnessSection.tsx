@@ -22,7 +22,7 @@ export default function WellnessSection() {
           <img
             alt="Wellness Banner"
             className="absolute inset-0 w-full h-full object-cover"
-            src="https://www.figma.com/api/mcp/asset/156f63b8-eb6e-4ea0-941f-aa760b2e4727"
+            src="/wellness-banner.svg"
           />
         </div>
       </div>
@@ -35,13 +35,13 @@ export default function WellnessSection() {
             <img
               alt="Model with patch"
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
-              src="https://www.figma.com/api/mcp/asset/9b56e960-5b42-4831-804b-411c875415e4"
+              src="/model-with-patch.svg"
             />
             {/* Feature Floating Badge */}
             <div className="absolute bottom-6 left-6 right-6 md:right-auto md:w-[280px] bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-[12px] shadow-2xl">
               <div className="flex items-center gap-3 mb-2">
                 <img
-                  src="https://www.figma.com/api/mcp/asset/4c99db14-df7d-498f-92c2-91a1751ed24d"
+                  src="/headline.svg"
                   className="w-5 h-5"
                   alt=""
                 />
@@ -59,7 +59,7 @@ export default function WellnessSection() {
               <img
                 alt="Product feature"
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                src="https://www.figma.com/api/mcp/asset/72bfc62b-94b5-4417-8f07-6c7a5ef76389"
+                src="/product-feature.svg"
               />
             </div>
             <div className="h-[250px] md:h-[298px] bg-[#d0ab8e] rounded-[16px] overflow-hidden group relative">

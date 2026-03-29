@@ -1,7 +1,7 @@
 export default function MissionBenefitsStrip() {
   const thumbnails = [
-    "https://www.figma.com/api/mcp/asset/70c40b9e-e82d-480d-a639-29f86445224b",
-    "https://www.figma.com/api/mcp/asset/e4b33ecf-2d97-4116-84d1-23ea33413d4f"
+    "/white-box.svg",
+    "/black-box.svg"
   ];
 
   return (
@@ -14,33 +14,29 @@ export default function MissionBenefitsStrip() {
         <img
           alt="Yoga wellness background"
           className="w-full h-full object-cover"
-          src="https://www.figma.com/api/mcp/asset/1e99b3e8-5e0b-4f10-8f7d-b488abec7432"
+          src="/girl-yoga.svg"
         />
-        <div className="absolute inset-0 bg-black/30" />
       </div>
 
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6">
-        <div className="flex flex-col items-center gap-3 text-center max-w-[480px]">
+        <div className="flex flex-col items-center gap-3 text-center max-w-[580px]">
           <span
-            className="text-[18px] md:text-[22px] font-medium text-white/80"
-            style={{ fontFamily: "'Satoshi', sans-serif" }}
+            className="text-[22px] font-['Satoshi:Medium',sans-serif] text-white/70"
           >
             Benefits that add up
           </span>
-          <h2
-            className="text-[32px] sm:text-[36px] md:text-[40px] leading-tight text-white font-bold tracking-[-0.8px]"
-            style={{ fontFamily: "'Satoshi', sans-serif" }}
+          <h1
+            className="text-[40px] leading-tight text-white font-['Satoshi:Bold',sans-serif] tracking-[-0.8px]"
           >
-            Crafted for busy lives and health-conscious minds.
-          </h2>
+            Crafted for busy lives<br /> and health-conscious minds.
+          </h1>
         </div>
 
         {/* Shop Now button */}
-        <button className="bg-white border border-black/15 px-8 py-3 rounded-full cursor-pointer hover:bg-white/90 transition-all active:scale-95 shadow-xl">
+        <button className="bg-white border border-black/15 px-10 py-3.5 rounded-[16px] cursor-pointer hover:bg-white/90 transition-all active:scale-95 shadow-xl">
           <span
-            className="text-[20px] md:text-[24px] text-[#1a1a1a] font-bold tracking-[0.48px] whitespace-nowrap"
-            style={{ fontFamily: "'Satoshi', sans-serif" }}
+            className="text-[24px] text-[#1A1A1A] font-['Satoshi:Bold',sans-serif] tracking-[0.48px] whitespace-nowrap"
           >
             Shop Now
           </span>

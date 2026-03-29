@@ -1,9 +1,9 @@
 export default function MissionSocialsStrip() {
   const socialImages = [
-    "https://www.figma.com/api/mcp/asset/69e5ebfb-f2b8-47e3-a80f-c7e62e74b0a2",
-    "https://www.figma.com/api/mcp/asset/3a1dad35-3e07-472d-ad6f-4a9633568e65",
-    "https://www.figma.com/api/mcp/asset/f020b7d9-44d6-42c6-9787-9bfe859d0f6e",
-    "https://www.figma.com/api/mcp/asset/e2e62335-4ab5-4e24-930a-30d713c4f508",
+    "/img1.svg",
+    "/img2.svg",
+    "/img3.svg",
+    "/img4.svg",
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function MissionSocialsStrip() {
             {idx === 2 && (
               <div className="absolute inset-x-6 top-6 flex items-center justify-between z-10">
                 <div className="w-8 h-8">
-                  <img src="https://www.figma.com/api/mcp/asset/b007f423-3ed7-4dab-bc12-8dc8181e0d97" alt="Social icon" className="w-full h-full object-contain" />
+                  <img src="/x-icon.svg" alt="Social icon" className="w-full h-full object-contain" />
                 </div>
                 <span className="text-white font-['Satoshi:Regular',sans-serif] text-lg tracking-[-0.4px]">@IVPatch</span>
               </div>
