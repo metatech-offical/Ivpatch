@@ -40,10 +40,10 @@ export default function CartDrawer() {
           {items.map((item) => (
             <div 
               key={item.id} 
-              className="w-full md:w-[573.95px] h-[148px] bg-white rounded-[19.25px] flex items-center p-3 relative group"
+              className="w-full lg:w-[573.95px] h-auto min-h-[148px] bg-white rounded-[19.25px] flex items-center p-3 md:p-4 relative group"
             >
               {/* Product Preview box */}
-              <div className="w-[123.93px] h-[129.95px] rounded-[14.22px] bg-[#F5F5F5] flex items-center justify-center overflow-hidden shrink-0">
+              <div className="w-[100px] md:w-[123.93px] h-[105px] md:h-[129.95px] rounded-[14.22px] bg-[#F5F5F5] flex items-center justify-center overflow-hidden shrink-0">
                 <img 
                   src={item.image} 
                   alt={item.name} 
@@ -52,9 +52,9 @@ export default function CartDrawer() {
               </div>
 
               {/* Product Details */}
-              <div className="flex-1 ml-5 flex flex-col justify-start h-full py-2">
+              <div className="flex-1 ml-3 md:ml-5 flex flex-col justify-start h-full py-1">
                 <div>
-                  <h3 className="text-[#4D4D4D] text-[22px] md:text-[24px] font-['Satoshi:Medium',sans-serif] tracking-tight">
+                  <h3 className="text-[#4D4D4D] text-[18px] md:text-[24px] font-['Satoshi:Medium',sans-serif] tracking-tight leading-tight">
                     {item.name}
                   </h3>
                   <p className="text-[#4D4D4D] text-[16px] font-['Satoshi:Regular',sans-serif] opacity-80 mt-0.5">
@@ -87,8 +87,8 @@ export default function CartDrawer() {
               </div>
 
               {/* Price & Remove */}
-              <div className="flex flex-col items-end justify-between h-full py-4 pr-4">
-                <p className="text-black text-[24px] md:text-[30px] font-['Satoshi:Medium',sans-serif] tracking-tight">
+              <div className="flex flex-col items-end justify-between h-full py-2 md:py-4 pr-1 md:pr-4">
+                <p className="text-black text-[20px] md:text-[30px] font-['Satoshi:Medium',sans-serif] tracking-tight">
                   ${item.price * item.quantity}
                 </p>
                 
@@ -143,7 +143,7 @@ export default function CartDrawer() {
             onClick={() => setIsOpen(false)}
             className="w-full"
           >
-            <button className="w-full md:w-[568px] h-[46px] bg-[#1A1A1A] text-white rounded-[16px] text-[18px] font-['Satoshi:Bold',sans-serif] hover:bg-black transition-all active:scale-[0.98]">
+            <button className="w-full h-[46px] bg-[#1A1A1A] text-white rounded-[16px] text-[18px] font-['Satoshi:Bold',sans-serif] hover:bg-black transition-all active:scale-[0.98]">
               Proceed to checkout
             </button>
           </Link>

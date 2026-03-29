@@ -1,8 +1,10 @@
+import Link from "next/link";
+
 export default function NutritionSection() {
   const stats = [
-    { label: "Natural Ingredients", icon: "https://www.figma.com/api/mcp/asset/34cfc50e-814f-4f0c-a081-09a19855ca63", value: "Natural" },
-    { label: "Nutrition Absorption", icon: "https://www.figma.com/api/mcp/asset/34cfc50e-814f-4f0c-a081-09a19855ca63", value: "98%" },
-    { label: "24 hr Energy Release", icon: "https://www.figma.com/api/mcp/asset/34cfc50e-814f-4f0c-a081-09a19855ca63", value: "24 hr" },
+    { label: "Natural Ingredients", icon: "/circle.svg", value: "Natural" },
+    { label: "Nutrition Absorption", icon: "/circle.svg", value: "98%" },
+    { label: "24 hr Energy Release", icon: "/circle.svg", value: "24 hr" },
   ];
 
   return (
@@ -29,9 +31,9 @@ export default function NutritionSection() {
             IVPATCH adapts to your day providing steady support without overstimulation, crashes, or dependency.
           </p>
           <div className="flex justify-center md:justify-start">
-            <button className="bg-white/10 backdrop-blur-md border border-white/20 px-8 py-3 rounded-[12px] text-white font-['Satoshi:Bold',sans-serif] text-[20px] md:text-[24px] hover:bg-white/20 transition-all active:scale-95 shadow-lg">
+            <Link href="/range" className="bg-white/10 backdrop-blur-md border border-white/20 px-8 py-3 rounded-[12px] text-white font-['Satoshi:Bold',sans-serif] text-[20px] md:text-[24px] hover:bg-white/20 transition-all active:scale-95 shadow-lg inline-block">
               Explore
-            </button>
+            </Link>
           </div>
         </div>
 

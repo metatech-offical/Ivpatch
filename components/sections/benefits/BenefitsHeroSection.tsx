@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function BenefitsHeroSection() {
   return (
     <section
@@ -26,11 +28,11 @@ export default function BenefitsHeroSection() {
             <p>with our premium transdermal patches.</p>
           </div>
           <div className="flex justify-center md:justify-start">
-            <button className="bg-white px-8 py-3 rounded-[16px] shadow-xl hover:bg-white/90 transition-all active:scale-95">
+            <Link href="/range" className="bg-white px-8 py-3 rounded-[16px] shadow-xl hover:bg-white/90 transition-all active:scale-95 inline-block">
               <span className="font-['Satoshi:Bold',sans-serif] text-[20px] md:text-[24px] text-black tracking-[0.48px]">
                 Get the Patch
               </span>
-            </button>
+            </Link>
           </div>
         </div>
 

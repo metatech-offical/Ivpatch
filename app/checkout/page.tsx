@@ -50,7 +50,7 @@ export default function CheckoutPage() {
             <div className="w-full lg:w-[587px] flex flex-col gap-6">
               
               {/* Main Product Image */}
-              <div className="w-[587px] h-[468px] bg-white rounded-[24px] shadow-sm flex items-center justify-center overflow-hidden">
+              <div className="w-full lg:w-[587px] h-[300px] md:h-[468px] bg-white rounded-[24px] shadow-sm flex items-center justify-center overflow-hidden">
                 {mainProduct ? (
                   <img 
                     src={mainProduct.image} 
@@ -58,15 +58,15 @@ export default function CheckoutPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="text-black/20 text-[20px] font-['Satoshi:Medium',sans-serif]">No items selected</div>
+                  <div className="text-black/20 text-[18px] md:text-[20px] font-['Satoshi:Medium',sans-serif]">No items selected</div>
                 )}
               </div>
 
               {/* Thumbnails if > 1 product */}
               {otherProducts.length > 0 && (
-                <div className="grid grid-cols-3 gap-[7.5px]">
+                <div className="grid grid-cols-3 gap-[7.5px] w-full lg:w-[587px]">
                   {otherProducts.map((item, idx) => (
-                    <div key={idx} className="w-[190.65px] h-[152px] bg-white rounded-[16px] overflow-hidden shadow-sm flex items-center justify-center">
+                    <div key={idx} className="h-24 md:h-[152px] bg-white rounded-[16px] overflow-hidden shadow-sm flex items-center justify-center">
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     </div>
                   ))}
@@ -74,20 +74,20 @@ export default function CheckoutPage() {
               )}
 
               {/* Summary Card */}
-              <div className="w-[587px] bg-white rounded-[24px] p-10 shadow-sm flex flex-col gap-6">
+              <div className="w-full lg:w-[587px] bg-white rounded-[24px] p-6 md:p-10 shadow-sm flex flex-col gap-6">
                 {items.map((item, idx) => (
                   <div key={`${item.id}-${idx}`} className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-[#1a1a1a] text-[42px] font-['Satoshi:Regular',sans-serif]">
+                      <h2 className="text-[#1a1a1a] text-[28px] md:text-[42px] font-['Satoshi:Regular',sans-serif]">
                         {item.name}
                       </h2>
-                      <p className="text-black text-[30px] font-['Satoshi:Medium',sans-serif]">
+                      <p className="text-black text-[22px] md:text-[30px] font-['Satoshi:Medium',sans-serif]">
                         ${item.price * item.quantity}
                       </p>
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <p className="text-black text-[24px] font-['Satoshi:Regular',sans-serif]">
+                      <p className="text-black text-[18px] md:text-[24px] font-['Satoshi:Regular',sans-serif]">
                         {item.plan} Subscription
                       </p>
                       <span className="text-[#B12422] text-[14px] font-['Satoshi:Regular',sans-serif]">
@@ -98,32 +98,32 @@ export default function CheckoutPage() {
                 ))}
 
                 {/* Discount Input */}
-                <div className="w-full h-[75px] bg-[#f2f2f2] rounded-[16px] px-6 flex items-center justify-between">
+                <div className="w-full min-h-[60px] md:h-[75px] bg-[#f2f2f2] rounded-[16px] px-6 py-2 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <input 
                     type="text" 
                     placeholder="Discount Code/Gift Card"
-                    className="bg-transparent border-none outline-none text-[#999999] text-[20px] font-['Satoshi:Regular',sans-serif] w-full"
+                    className="bg-transparent border-none outline-none text-[#999999] text-[18px] md:text-[20px] font-['Satoshi:Regular',sans-serif] w-full"
                   />
-                  <button className="text-black text-[24px] font-['Satoshi:Regular',sans-serif] px-4 py-2 hover:opacity-70 transition-all">
+                  <button className="text-black text-[20px] md:text-[24px] font-['Satoshi:Regular',sans-serif] px-4 py-1 hover:opacity-70 transition-all">
                     Apply
                   </button>
                 </div>
 
                 {/* Totals */}
                 <div className="flex flex-col gap-4 mt-4">
-                  <div className="flex items-center justify-between text-[#4D4D4D] text-[22px] font-['Satoshi:Regular',sans-serif]">
+                  <div className="flex items-center justify-between text-[#4D4D4D] text-[18px] md:text-[22px] font-['Satoshi:Regular',sans-serif]">
                     <p>Subtotal</p>
-                    <p className="text-black text-[24px]">${subtotal}</p>
+                    <p className="text-black text-[20px] md:text-[24px]">${subtotal}</p>
                   </div>
-                  <div className="flex items-center justify-between text-[#4D4D4D] text-[22px] font-['Satoshi:Regular',sans-serif]">
+                  <div className="flex items-center justify-between text-[#4D4D4D] text-[18px] md:text-[22px] font-['Satoshi:Regular',sans-serif]">
                     <p>Taxes</p>
-                    <p className="text-black text-[24px]">${taxes}</p>
+                    <p className="text-black text-[20px] md:text-[24px]">${taxes}</p>
                   </div>
-                  <div className="flex items-center justify-between text-[#4D4D4D] text-[22px] font-['Satoshi:Regular',sans-serif]">
+                  <div className="flex items-center justify-between text-[#4D4D4D] text-[18px] md:text-[22px] font-['Satoshi:Regular',sans-serif]">
                     <p>Shipping</p>
-                    <p className="text-black text-[24px]">${shippingCharge}</p>
+                    <p className="text-black text-[20px] md:text-[24px]">${shippingCharge}</p>
                   </div>
-                  <div className="flex items-center justify-between text-black text-[24px] font-['Satoshi:Medium',sans-serif]">
+                  <div className="flex items-center justify-between text-black text-[20px] md:text-[24px] font-['Satoshi:Medium',sans-serif]">
                     <p>Total</p>
                     <p>${total.toFixed(2)}</p>
                   </div>
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
                     <input placeholder="Postcode" className="h-[60px] bg-white rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black shadow-sm outline-none" />
                   </div>
 
-                  <input placeholder="Phone" className="w-full h-[60px] bg-white rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black shadow-sm outline-none" />
+                  <input placeholder="Phone" className="w-full h-auto min-h-[60px] md:h-[60px] bg-white rounded-[12px] px-6 py-4 md:py-0 text-[18px] md:text-[20px] font-['Satoshi:Regular',sans-serif] text-black shadow-sm outline-none" />
                   
                   <div 
                     className="flex flex-row items-center gap-2 cursor-pointer group"
@@ -186,9 +186,9 @@ export default function CheckoutPage() {
 
               {/* Shipping Method */}
               <div className="flex flex-col gap-6">
-                <h2 className="text-black text-[30px] font-['Satoshi:Medium',sans-serif]">Shipping Method</h2>
+                <h2 className="text-black text-[24px] md:text-[30px] font-['Satoshi:Medium',sans-serif]">Shipping Method</h2>
                 
-                <div className="w-[575px] h-[222px] bg-white rounded-[16px] shadow-sm flex flex-col border border-black/5 divide-y divide-black/5">
+                <div className="w-full lg:w-[575px] h-auto md:h-[222px] bg-white rounded-[16px] shadow-sm flex flex-col border border-black/5 divide-y divide-black/5">
                   {[
                     { id: "prepaid", title: "Prepaid", sub: "3-7 Business Days", price: "FREE" },
                     { id: "cod", title: "Cash on Delivery (COD)", sub: "3-7 Business Days", price: "$0.60" },
@@ -197,7 +197,7 @@ export default function CheckoutPage() {
                     <button 
                       key={method.id}
                       onClick={() => setSelectedShipping(method.id)}
-                      className="flex-1 px-8 flex items-center justify-between group hover:bg-[#f9fafb] first:rounded-t-[16px] last:rounded-b-[16px] transition-colors"
+                      className="flex-1 px-6 md:px-8 py-4 md:py-0 flex items-center justify-between group hover:bg-[#f9fafb] first:rounded-t-[16px] last:rounded-b-[16px] transition-colors"
                     >
                       <div className="flex items-center gap-4">
                         {/* Custom Radio */}
@@ -205,11 +205,11 @@ export default function CheckoutPage() {
                           {selectedShipping === method.id && <div className="w-full h-full bg-black rounded-full" />}
                         </div>
                         <div className="text-left">
-                          <p className="text-black text-[20px] font-['Satoshi:Regular',sans-serif] capitalize">{method.title}</p>
-                          <p className="text-black/40 text-[16px] font-['Satoshi:Regular',sans-serif]">{method.sub}</p>
+                          <p className="text-black text-[18px] md:text-[20px] font-['Satoshi:Regular',sans-serif] capitalize">{method.title}</p>
+                          <p className="text-black/40 text-[14px] md:text-[16px] font-['Satoshi:Regular',sans-serif]">{method.sub}</p>
                         </div>
                       </div>
-                      <p className="text-black text-[16px] font-['Satoshi:Regular',sans-serif]">{method.price}</p>
+                      <p className="text-black text-[14px] md:text-[16px] font-['Satoshi:Regular',sans-serif]">{method.price}</p>
                     </button>
                   ))}
                 </div>
@@ -227,9 +227,9 @@ export default function CheckoutPage() {
 
                   <div className="flex flex-col gap-4">
                     {/* Credit Card Title Row */}
-                    <div className="w-full h-[60px] bg-white rounded-[12px] px-6 flex items-center justify-between shadow-sm border border-black/5">
-                      <span className="text-black text-[20px] font-['Satoshi:Medium',sans-serif]">Credit Card</span>
-                      <img src="/pay2.svg" alt="Accepted Cards" className="h-[24px] w-auto" />
+                    <div className="w-full h-auto min-h-[60px] bg-white rounded-[12px] px-6 py-4 md:py-0 flex items-center justify-between shadow-sm border border-black/5">
+                      <span className="text-black text-[18px] md:text-[20px] font-['Satoshi:Medium',sans-serif]">Credit Card</span>
+                      <img src="/pay2.svg" alt="Accepted Cards" className="h-[20px] md:h-[24px] w-auto" />
                     </div>
 
                     {/* Card Details Inputs */}
@@ -273,10 +273,10 @@ export default function CheckoutPage() {
         </div>
 
         {/* Pairs well with Section */}
-        <div className="flex flex-col gap-10 mt-[60px] pb-[100px] w-full">
-          <h2 className="text-[#1A1A1A] text-[42px] font-['Satoshi:Medium',sans-serif]">Pairs well with</h2>
+        <div className="flex flex-col gap-6 md:gap-10 mt-[40px] md:mt-[60px] pb-[60px] md:pb-[100px] w-full items-center md:items-start text-center md:text-left">
+          <h2 className="text-[#1A1A1A] text-[28px] md:text-[42px] font-['Satoshi:Medium',sans-serif]">Pairs well with</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[20px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[20px] w-full max-w-[350px] md:max-w-none">
              <ProductCard 
                 id="energy-release"
                 name="Energy Release"

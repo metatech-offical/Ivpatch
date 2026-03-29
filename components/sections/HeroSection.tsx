@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import ComingSoonTooltip from "../ui/ComingSoonTooltip";
+import Link from "next/link";
 
 export default function HeroSection() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -93,75 +93,57 @@ export default function HeroSection() {
                           {slide.description}
                         </p>
                       </div>
-                      <ComingSoonTooltip>
-                        <a
-                          href="/range"
-                          onClick={(e) => e.preventDefault()}
-                          className="inline-flex items-center justify-center w-[147px] h-[52px] rounded-[8px] cursor-pointer transition-all duration-300 hover:opacity-80 active:scale-95 bg-[#A2845E]/30 backdrop-blur-md border border-white/15"
-                        >
-                          <span className="text-[20px] md:text-[24px] font-bold text-white tracking-[0.02em] whitespace-nowrap">
-                            Buy Now
-                          </span>
-                        </a>
-                      </ComingSoonTooltip>
-                    </div>
-                  </div>
-                )}
+            <Link href="/range" className="inline-flex items-center justify-center w-[147px] h-[52px] rounded-[8px] cursor-pointer transition-all duration-300 hover:opacity-80 active:scale-95 bg-[#A2845E]/30 backdrop-blur-md border border-white/15">
+              <span className="text-[20px] md:text-[24px] font-bold text-white tracking-[0.02em] whitespace-nowrap">
+                Buy Now
+              </span>
+            </Link>
+          </div>
+        </div>
+      )}
 
-                {slide.layout === "lifestyle" && (
-                  <div className="w-full h-full relative flex flex-col items-center md:block">
-                    <div className="absolute left-6 md:left-[80px] top-[40%] md:top-[45%] -translate-y-1/2 flex flex-col gap-5 md:gap-[32px] max-w-full md:max-w-[500px] text-center md:text-left w-full pr-12 md:pr-0">
-                      <div className={`flex flex-col gap-3 md:gap-[16px] ${activeSlideIndex === (index % slides.length) ? "animate-content" : "opacity-0"}`}>
-                        <h5 className="font-['Satoshi:Bold',sans-serif] font-bold leading-[1.1] text-[48px] sm:text-[54px] md:text-[60px] text-white tracking-[-0.01em] whitespace-pre-line">
-                          {slide.headline}
-                        </h5>
-                        <p className="font-['Satoshi:Regular',sans-serif] text-[18px] md:text-[22px] leading-[1.3] text-[#CCCCCC] tracking-[0.01em] max-w-[400px] mx-auto md:mx-0">
-                          {slide.description}
-                        </p>
-                      </div>
-                      <div className={`${activeSlideIndex === (index % slides.length) ? "animate-content" : "opacity-0"}`}>
-                        <ComingSoonTooltip>
-                          <a
-                            href="/range"
-                            onClick={(e) => e.preventDefault()}
-                            className="inline-flex items-center justify-center w-[147px] h-[52px] rounded-[8px] cursor-pointer transition-all duration-300 hover:opacity-90 active:scale-95 bg-[#A2845E]/30 backdrop-blur-md border border-white/15"
-                          >
-                            <span className="text-[20px] md:text-[24px] font-bold text-white tracking-[0.02em] whitespace-nowrap">
-                              Buy Now
-                            </span>
-                          </a>
-                        </ComingSoonTooltip>
-                      </div>
-                    </div>
-                  </div>
-                )}
+      {slide.layout === "lifestyle" && (
+        <div className="w-full h-full relative flex flex-col items-center md:block">
+          <div className="absolute left-6 md:left-[80px] top-[40%] md:top-[45%] -translate-y-1/2 flex flex-col gap-5 md:gap-[32px] max-w-full md:max-w-[500px] text-center md:text-left w-full pr-12 md:pr-0">
+            <div className={`flex flex-col gap-3 md:gap-[16px] ${activeSlideIndex === (index % slides.length) ? "animate-content" : "opacity-0"}`}>
+              <h5 className="font-['Satoshi:Bold',sans-serif] font-bold leading-[1.1] text-[48px] sm:text-[54px] md:text-[60px] text-white tracking-[-0.01em] whitespace-pre-line">
+                {slide.headline}
+              </h5>
+              <p className="font-['Satoshi:Regular',sans-serif] text-[18px] md:text-[22px] leading-[1.3] text-[#CCCCCC] tracking-[0.01em] max-w-[400px] mx-auto md:mx-0">
+                {slide.description}
+              </p>
+            </div>
+            <div className={`${activeSlideIndex === (index % slides.length) ? "animate-content" : "opacity-0"}`}>
+              <Link href="/range" className="inline-flex items-center justify-center w-[147px] h-[52px] rounded-[8px] cursor-pointer transition-all duration-300 hover:opacity-90 active:scale-95 bg-[#A2845E]/30 backdrop-blur-md border border-white/15">
+                <span className="text-[20px] md:text-[24px] font-bold text-white tracking-[0.02em] whitespace-nowrap">
+                  Buy Now
+                </span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
-                {slide.layout === "range-focus" && (
-                  <div className="w-full flex justify-center md:justify-start md:pl-[100px]">
-                    <div className={`flex flex-col items-center md:items-start text-center md:text-left gap-8 md:gap-[32px] max-w-[550px] ${activeSlideIndex === (index % slides.length) ? "animate-content" : "opacity-0"}`}>
-                      <div className="flex flex-col gap-5 md:gap-[20px]">
-                        <h5 className="font-['Satoshi:Bold',sans-serif] font-bold leading-[1.1] text-[48px] sm:text-[54px] md:text-[60px] text-[#1a1a1a] tracking-[-0.02em] whitespace-pre-line">
-                          {slide.headline}
-                        </h5>
-                        <p className="font-['Satoshi:Regular',sans-serif] text-[18px] md:text-[22px] leading-[1.3] text-[#1A1A1A] tracking-[0.01em] max-w-[480px]">
-                          {slide.description}
-                        </p>
-                      </div>
-                      <ComingSoonTooltip>
-                        <a
-                          href="/range"
-                          onClick={(e) => e.preventDefault()}
-                          className="inline-flex items-center justify-center w-[225px] h-[52px] rounded-[8px] cursor-pointer transition-all duration-300 hover:opacity-80 active:scale-95 bg-[#DCDAD8]/50 backdrop-blur-md border border-black/5"
-                        >
-                          <span className="text-[20px] md:text-[24px] font-bold text-[#1a1a1a] tracking-[0.02em] whitespace-nowrap">
-                            View the Range
-                          </span>
-                        </a>
-                      </ComingSoonTooltip>
-                    </div>
-                  </div>
-                )}
-              </div>
+      {slide.layout === "range-focus" && (
+        <div className="w-full flex justify-center md:justify-start md:pl-[100px]">
+          <div className={`flex flex-col items-center md:items-start text-center md:text-left gap-8 md:gap-[32px] max-w-[550px] ${activeSlideIndex === (index % slides.length) ? "animate-content" : "opacity-0"}`}>
+            <div className="flex flex-col gap-5 md:gap-[20px]">
+              <h5 className="font-['Satoshi:Bold',sans-serif] font-bold leading-[1.1] text-[48px] sm:text-[54px] md:text-[60px] text-[#1a1a1a] tracking-[-0.02em] whitespace-pre-line">
+                {slide.headline}
+              </h5>
+              <p className="font-['Satoshi:Regular',sans-serif] text-[18px] md:text-[22px] leading-[1.3] text-[#1A1A1A] tracking-[0.01em] max-w-[480px]">
+                {slide.description}
+              </p>
+            </div>
+            <Link href="/range" className="inline-flex items-center justify-center w-[225px] h-[52px] rounded-[8px] cursor-pointer transition-all duration-300 hover:opacity-80 active:scale-95 bg-[#DCDAD8]/50 backdrop-blur-md border border-black/5">
+              <span className="text-[20px] md:text-[24px] font-bold text-[#1a1a1a] tracking-[0.02em] whitespace-nowrap">
+                View the Range
+              </span>
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
 
             </div>
           ))}

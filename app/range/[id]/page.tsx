@@ -112,19 +112,19 @@ export default function ProductDetailPage() {
             { icon: "/icon2.svg", title: "Wear & Absorb", sub: "Leave the patch on for 8 hours to allow steady absorption of active ingredients." },
             { icon: "/icon3.svg", title: "Replace Daily", sub: "Remove and apply a fresh patch daily for optimal, continuous benefits." }
           ].map((item, idx) => (
-            <div key={idx} className="bg-[#FAF9F0] h-[240px] rounded-[12px] p-5 flex flex-col items-center text-center">
-              <div className="h-[80px] flex items-center justify-center">
-                <img src={item.icon} alt={item.title} className="max-h-full" />
-              </div>
-              <h4 className="mt-4 text-black text-[16px] md:text-[18px] font-bold font-['Satoshi:Bold',sans-serif]">
-                {item.title}
-              </h4>
-              <p className="mt-2 text-[#6F6F6F] text-[9px] md:text-[10px] font-['Satoshi:Regular',sans-serif] leading-tight px-2">
-                {item.sub}
-              </p>
+                <div key={idx} className="bg-[#FAF9F0] h-auto md:h-[240px] rounded-[12px] p-6 md:p-5 flex flex-col items-center text-center">
+                  <div className="h-[60px] md:h-[80px] flex items-center justify-center">
+                    <img src={item.icon} alt={item.title} className="max-h-full" />
+                  </div>
+                  <h4 className="mt-4 text-black text-[18px] font-bold font-['Satoshi:Bold',sans-serif]">
+                    {item.title}
+                  </h4>
+                  <p className="mt-2 text-[#6F6F6F] text-[14px] md:text-[10px] font-['Satoshi:Regular',sans-serif] leading-tight px-2">
+                    {item.sub}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
       )
     },
     {
@@ -173,7 +173,7 @@ export default function ProductDetailPage() {
 
           {/* Left Section - Gallery */}
           <div
-            className="w-full lg:w-[618px] h-[600px] md:h-[835px] rounded-[30.51px] relative overflow-hidden flex flex-col items-center justify-center shadow-sm"
+            className="w-full lg:w-[618px] h-[400px] md:h-[600px] lg:h-[835px] rounded-[30.51px] relative overflow-hidden flex flex-col items-center justify-center shadow-sm"
             style={{ backgroundColor: product.color === "#ffffff" ? "#ECEBE3" : product.color }}
           >
             <div className="w-full h-full p-0 flex items-center justify-center">
@@ -185,12 +185,12 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Thumbnails */}
-            <div className="absolute bottom-[30px] flex gap-[20px] z-10">
+            <div className="absolute bottom-[20px] md:bottom-[30px] flex gap-[12px] md:gap-[20px] z-10 px-4">
               {product.images.slice(0, 2).map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(img)}
-                  className={`w-[130px] md:w-[172.82px] h-[80px] md:h-[110.06px] rounded-[14.55px] overflow-hidden border-2 transition-all flex items-center justify-center p-0 bg-white/20 backdrop-blur-md shadow-lg ${selectedImage === img ? 'border-[#FFFFFF] scale-105' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                  className={`w-[100px] md:w-[150px] lg:w-[172.82px] h-[60px] md:h-[90px] lg:h-[110.06px] rounded-[14.55px] overflow-hidden border-2 transition-all flex items-center justify-center p-0 bg-white/20 backdrop-blur-md shadow-lg ${selectedImage === img ? 'border-[#FFFFFF] scale-105' : 'border-transparent opacity-70 hover:opacity-100'}`}
                 >
                   <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
                 </button>
@@ -201,15 +201,16 @@ export default function ProductDetailPage() {
           {/* Right Section - Info & Details */}
           <div className="flex-1 flex flex-col gap-[20px]">
             {/* Product Card */}
-            <div className="bg-white w-full lg:w-[561px] h-auto lg:h-[646px] rounded-[24px] p-[30px] md:p-[40px] shadow-sm relative flex flex-col">
+            {/* Product Card */}
+            <div className="bg-white w-full lg:w-[561px] h-auto lg:min-h-[646px] rounded-[24px] p-8 md:p-[40px] shadow-sm relative flex flex-col">
               {/* Heart icon placeholder */}
-              <div className="absolute top-[30px] right-[30px] w-[40px] h-[40px] rounded-full bg-[#F5F5F5] flex items-center justify-center cursor-pointer hover:bg-[#eee] transition-colors">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.5">
+              <div className="absolute top-[20px] md:top-[30px] right-[20px] md:right-[30px] w-[32px] md:w-[40px] h-[32px] md:h-[40px] rounded-full bg-[#F5F5F5] flex items-center justify-center cursor-pointer hover:bg-[#eee] transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.5" className="w-[20px] md:w-[24px] h-[20px] md:h-[24px]">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                 </svg>
               </div>
 
-              <h1 className="mt-8 text-[#1a1a1a] text-[36px] md:text-[42px] font-['Satoshi:Bold',sans-serif] tracking-tight leading-tight capitalize">
+              <h1 className="mt-6 md:mt-8 text-[#1a1a1a] text-[32px] md:text-[42px] font-['Satoshi:Bold',sans-serif] tracking-tight leading-tight capitalize">
                 {product.name}
               </h1>
 
@@ -217,19 +218,19 @@ export default function ProductDetailPage() {
                 {product.description}
               </p>
 
-              <div className="my-[40px] flex items-baseline gap-4">
-                <span className="text-[#1a1a1a] text-[36px] md:text-[42px] font-['Satoshi:Medium',sans-serif]">{product.price}</span>
+              <div className="my-[30px] md:my-[40px] flex items-baseline gap-4">
+                <span className="text-[#1a1a1a] text-[32px] md:text-[42px] font-['Satoshi:Medium',sans-serif]">{product.price}</span>
                 <span className="text-[#E11066] text-[16px] font-['Satoshi:Regular',sans-serif]">{product.discount}</span>
               </div>
 
-              <div className="mt-8">
+              <div className="mt-4 md:mt-8">
                 <p className="text-[#1a1a1a] text-[16px] font-['Satoshi:Regular',sans-serif] mb-4">Plan</p>
-                <div className="flex gap-[12px]">
+                <div className="flex flex-wrap gap-[12px]">
                   {plans.map(plan => (
                     <button
                       key={plan}
                       onClick={() => setSelectedPlan(plan)}
-                      className={`w-[100px] md:w-[151px] h-[47px] rounded-[16px] border flex items-center justify-center text-[16px] font-['Satoshi:Regular',sans-serif] transition-all ${selectedPlan === plan ? 'border-black text-black' : 'border-transparent bg-[#F5F5F5] text-[#4D4D4D]'}`}
+                      className={`w-[90px] md:w-[151px] h-[40px] md:h-[47px] rounded-[16px] border flex items-center justify-center text-[14px] md:text-[16px] font-['Satoshi:Regular',sans-serif] transition-all ${selectedPlan === plan ? 'border-black text-black' : 'border-transparent bg-[#F5F5F5] text-[#4D4D4D]'}`}
                     >
                       {plan}
                     </button>
@@ -237,16 +238,16 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-10 flex flex-col gap-[12px]">
+              <div className="mt-8 md:mt-auto pt-6 md:pt-10 flex flex-col gap-[12px]">
                 <button
                   onClick={handleAddToCart}
-                  className="w-full lg:w-[479px] h-[44px] rounded-[14.91px] bg-[#333333] text-white text-[20px] md:text-[24px] font-['Satoshi:Medium',sans-serif] hover:bg-[#222] transition-all active:scale-[0.98]"
+                  className="w-full lg:w-[479px] h-[50px] md:h-[44px] rounded-[14.91px] bg-[#333333] text-white text-[18px] md:text-[24px] font-['Satoshi:Medium',sans-serif] hover:bg-[#222] transition-all active:scale-[0.98]"
                 >
                   Add to Cart
                 </button>
                 <button 
                   onClick={handleAddToCart}
-                  className="w-full lg:w-[479px] h-[44px] rounded-[14.91px] border border-[#808080] text-[#4D4D4D] text-[20px] md:text-[24px] font-['Satoshi:Medium',sans-serif] hover:bg-gray-50 transition-all active:scale-[0.98]">
+                  className="w-full lg:w-[479px] h-[50px] md:h-[44px] rounded-[14.91px] border border-[#808080] text-[#4D4D4D] text-[18px] md:text-[24px] font-['Satoshi:Medium',sans-serif] hover:bg-gray-50 transition-all active:scale-[0.98]">
                   Buy Now
                 </button>
               </div>
@@ -258,20 +259,20 @@ export default function ProductDetailPage() {
                 <div key={acc.id} className="w-full lg:w-[561px] bg-white rounded-[12px] overflow-hidden shadow-sm transition-all duration-300">
                   <button
                     onClick={() => setExpandedAccordion(expandedAccordion === acc.id ? null : acc.id)}
-                    className="w-full h-[68px] px-[24px] flex items-center justify-between group"
+                    className="w-full h-auto min-h-[68px] px-6 py-4 flex items-center justify-between group"
                   >
-                    <span className="text-black text-[18px] md:text-[20px] font-['Satoshi:Bold',sans-serif]">
+                    <span className="text-black text-[18px] md:text-[20px] font-['Satoshi:Bold',sans-serif] text-left">
                       {acc.title}
                     </span>
-                    <span className="text-[#4D4D4D] text-[24px] font-light transition-transform duration-300">
+                    <span className="text-[#4D4D4D] text-[24px] font-light transition-transform duration-300 pl-4">
                       {expandedAccordion === acc.id ? "−" : "+"}
                     </span>
                   </button>
                   {expandedAccordion === acc.id && (
-                    <div className="px-[24px] pb-[24px] animate-in slide-in-from-top-2 fade-in">
-                      <p className="text-[#666666] text-[16px] font-['Satoshi:Medium',sans-serif] leading-relaxed">
+                    <div className="px-6 pb-6 animate-in slide-in-from-top-2 fade-in">
+                      <div className="text-[#666666] text-[15px] md:text-[16px] font-['Satoshi:Medium',sans-serif] leading-relaxed">
                         {acc.content}
-                      </p>
+                      </div>
                     </div>
                   )}
                 </div>

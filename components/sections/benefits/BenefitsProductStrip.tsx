@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function BenefitsProductStrip() {
   const products = Array.from({ length: 7 }).map((_, idx) => ({
     img: idx === 2
@@ -12,8 +14,9 @@ export default function BenefitsProductStrip() {
     >
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide md:grid md:grid-cols-7 md:gap-4 md:overflow-visible">
         {products.map((p, idx) => (
-          <div
+          <Link
             key={idx}
+            href="/range"
             className="flex-shrink-0 w-[140px] md:w-auto aspect-[1.1] md:h-[147px] bg-white border border-black/10 rounded-[20px] shadow-sm overflow-hidden flex items-center justify-center hover:shadow-md transition-shadow group cursor-pointer"
           >
             <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
@@ -23,7 +26,7 @@ export default function BenefitsProductStrip() {
                 src={p.img}
               />
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>

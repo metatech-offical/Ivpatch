@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function MissionHeroSection() {
   const footerBadges = [
     ["Steady absorption", "No digestive strain"],
@@ -31,11 +33,12 @@ export default function MissionHeroSection() {
             Support that<br /> Feels Natural
           </h1>
           <div className="flex justify-center md:justify-start">
-            <button
+            <Link
+              href="/range"
               className="inline-flex items-center px-10 py-3.5 rounded-[16px] cursor-pointer bg-[#333333] text-white text-[20px] md:text-[24px] font-['Satoshi:Bold',sans-serif] hover:bg-black transition-all active:scale-95 shadow-lg"
             >
               View the Range
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -43,22 +46,20 @@ export default function MissionHeroSection() {
       {/* Row 1: Feature Grid */}
       <div className="flex flex-col lg:flex-row gap-5 px-5 pb-5 w-full">
         {/* Left Stack: 95% & 24 Hours */}
-        <div className="flex flex-col gap-5 shrink-0 w-[420px]">
+        <div className="flex flex-col gap-5 shrink-0 w-full lg:w-[420px]">
           <div
-            className="rounded-[8px] p-10 flex flex-col bg-[#E6E9E1] w-full"
-            style={{ height: '420px' }}
+            className="rounded-[8px] p-6 md:p-10 flex flex-col bg-[#E6E9E1] w-full h-[350px] lg:h-[420px]"
           >
-            <h3 className="text-[40px] font-['Satoshi:Medium',sans-serif] text-black leading-none">95%</h3>
-            <p className="text-[20px] leading-[1.3] text-[#666666] font-['Satoshi:Medium',sans-serif] mt-auto">
+            <h3 className="text-[32px] md:text-[40px] font-['Satoshi:Medium',sans-serif] text-black leading-none">95%</h3>
+            <p className="text-[18px] md:text-[20px] leading-[1.3] text-[#666666] font-['Satoshi:Medium',sans-serif] mt-auto">
               This 95% absorption rate ensures faster, more effective results with no stomach discomfort.
             </p>
           </div>
           <div
-            className="rounded-[8px] p-10 flex flex-col bg-[#E6E9E1] w-full"
-            style={{ height: '466px' }}
+            className="rounded-[8px] p-6 md:p-10 flex flex-col bg-[#E6E9E1] w-full h-[350px] lg:h-[466px]"
           >
-            <h3 className="text-[40px] font-['Satoshi:Medium',sans-serif] text-black leading-none">24 Hours</h3>
-            <p className="text-[20px] leading-[1.3] text-[#666666] font-['Satoshi:Medium',sans-serif] mt-auto">
+            <h3 className="text-[32px] md:text-[40px] font-['Satoshi:Medium',sans-serif] text-black leading-none">24 Hours</h3>
+            <p className="text-[18px] md:text-[20px] leading-[1.3] text-[#666666] font-['Satoshi:Medium',sans-serif] mt-auto">
               of steady, controlled nutrient release from a single patch.
             </p>
           </div>
@@ -66,23 +67,22 @@ export default function MissionHeroSection() {
 
         {/* Right Wide: Backed by Science */}
         <div
-          className="flex-1 flex-grow rounded-[8px] overflow-hidden relative bg-[#E6E9E1] flex flex-col"
-          style={{ minHeight: '905px' }}
+          className="flex-1 flex-grow rounded-[8px] overflow-hidden relative bg-[#E6E9E1] flex flex-col min-h-[500px] lg:min-h-[905px]"
         >
-          <div className="p-10 flex flex-col justify-start relative z-10 w-full h-full">
-            <h2 className="text-[40px] font-['Satoshi:Medium',sans-serif] text-black mb-[16px]">Backed by Science</h2>
-            <p className="text-[20px] leading-[1.4] text-[#666666] font-['Satoshi:Medium',sans-serif] max-w-[550px]">
+          <div className="p-6 md:p-10 flex flex-col justify-start h-full pb-[320px] lg:pb-10">
+            <h2 className="text-[32px] md:text-[40px] font-['Satoshi:Medium',sans-serif] text-black mb-[16px]">Backed by Science</h2>
+            <p className="text-[18px] md:text-[20px] leading-[1.4] text-[#666666] font-['Satoshi:Medium',sans-serif] max-w-[550px]">
               The skin has the ability to absorb certain vitamins and minerals directly. When these nutrients have a molecular weight of 500 Daltons or less, our skin can pick it up. Unlike oral supplements, which must pass through the digestive system (losing potency along the way), our patches deliver nutrients directly through the skin and into the bloodstream. This 95% absorption rate ensures faster, more effective results with no stomach discomfort.
             </p>
+          </div>
 
-            {/* Image - anchored far right bottom */}
-            <div className="absolute right-0 bottom-0 w-[550px] h-[550px] pointer-events-none">
-              <img
-                alt="Scientifically backed results"
-                src="/girl-img.svg"
-                className="w-full h-full object-contain object-right-bottom"
-              />
-            </div>
+          {/* Image - anchored far right bottom */}
+          <div className="absolute right-0 bottom-0 w-[280px] h-[280px] md:w-[400px] md:h-[400px] lg:w-[550px] lg:h-[550px] opacity-100 pointer-events-none">
+            <img
+              alt="Scientifically backed results"
+              src="/girl-img.svg"
+              className="w-full h-full object-contain object-right-bottom"
+            />
           </div>
         </div>
       </div>
@@ -91,8 +91,7 @@ export default function MissionHeroSection() {
       <div className="flex flex-col lg:flex-row gap-5 px-5 pb-8">
         {/* You Deserve Better */}
         <div
-          className="rounded-[8px] overflow-hidden relative bg-[#ECEBE3]"
-          style={{ width: 'min(732px, 100%)', height: '357px' }}
+          className="rounded-[8px] overflow-hidden relative bg-[#ECEBE3] w-full lg:w-[732px] h-[300px] md:h-[357px]"
         >
           <div className="absolute inset-0">
             <img
@@ -102,18 +101,18 @@ export default function MissionHeroSection() {
             />
             <div className="absolute inset-0 bg-black/15" />
           </div>
-          <div className="relative z-10 p-10 h-full flex flex-col justify-between">
-            <h2 className="text-[50px] font-['Satoshi:Medium',sans-serif] text-white">You deserve Better</h2>
+          <div className="relative z-10 p-6 md:p-10 h-full flex flex-col justify-between">
+            <h2 className="text-[32px] md:text-[50px] font-['Satoshi:Medium',sans-serif] text-white">You deserve Better</h2>
 
-            <div className="flex flex-col gap-4 overflow-hidden -mx-10 whitespace-nowrap">
+            <div className="flex flex-col gap-4 overflow-hidden -mx-6 md:-mx-10 whitespace-nowrap">
               {/* Row 1: Right to Left (4 items) */}
               <div className="flex gap-4 animate-marquee-left">
                 {[...Array(2)].map((_, i) => (
                   <div key={i} className="flex gap-4">
-                    {["Steady absorption", "No digestive strain", "Consistent daily support", "Zero caffine"].map((text) => (
+                    {["Steady absorption", "No digestive strain", "Consistent daily support", "Zero caffeine"].map((text) => (
                       <div
                         key={text}
-                        className="h-[50px] flex items-center px-6 rounded-[8px] bg-[#D3DCCF] text-[#666666] text-[20px] font-['Satoshi:Medium',sans-serif]"
+                        className="h-[40px] md:h-[50px] flex items-center px-4 md:px-6 rounded-[8px] bg-[#D3DCCF] text-[#666666] text-[16px] md:text-[20px] font-['Satoshi:Medium',sans-serif]"
                       >
                         {text}
                       </div>
@@ -129,7 +128,7 @@ export default function MissionHeroSection() {
                     {["Easy to maintain", "No needles", "No clinic visits", "Reduced nutrient loss", "Safe & Natural"].map((text) => (
                       <div
                         key={text}
-                        className="h-[50px] flex items-center px-6 rounded-[8px] bg-[#D3DCCF] text-[#666666] text-[20px] font-['Satoshi:Medium',sans-serif]"
+                        className="h-[40px] md:h-[50px] flex items-center px-4 md:px-6 rounded-[8px] bg-[#D3DCCF] text-[#666666] text-[16px] md:text-[20px] font-['Satoshi:Medium',sans-serif]"
                       >
                         {text}
                       </div>
@@ -160,12 +159,11 @@ export default function MissionHeroSection() {
 
         {/* Up to 5x */}
         <div
-          className="shrink-0 rounded-[8px] p-10 flex flex-col bg-[#ECEBE3]"
-          style={{ width: 'min(455px, 100%)', height: '357px' }}
+          className="shrink-0 rounded-[8px] p-6 md:p-10 flex flex-col bg-[#ECEBE3] w-full lg:w-[455px] h-auto lg:h-[357px]"
         >
-          <h3 className="text-[40px] font-['Satoshi:Medium',sans-serif] text-black leading-none">Up to 5×</h3>
-          <div style={{ marginTop: '94px' }}>
-            <p className="text-[20px] leading-tight text-[#666666] font-['Satoshi:Medium',sans-serif]">
+          <h3 className="text-[32px] md:text-[40px] font-['Satoshi:Medium',sans-serif] text-black leading-none">Up to 5×</h3>
+          <div className="mt-8 lg:mt-[94px]">
+            <p className="text-[18px] md:text-[20px] leading-tight text-[#666666] font-['Satoshi:Medium',sans-serif]">
               more efficient nutrient utilization compared to traditional oral supplements, based on delivery method and reduced digestive breakdown.
             </p>
           </div>

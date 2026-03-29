@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import ComingSoonTooltip from "@/components/ui/ComingSoonTooltip";
 
 type NavbarProps = {
   active?: "home" | "range" | "our-mission" | "benefits" | "affiliates";
@@ -50,15 +51,23 @@ export default function Navbar({ active = "home" }: NavbarProps) {
       {/* Desktop Navigation */}
       <div className="hidden lg:flex items-center gap-[24px] pr-[40px]">
         <nav className="flex items-center gap-[24px] text-[20px] font-medium font-sans">
-          {navLinks.map((link) => (
-            <Link
-              key={link.id}
-              href={link.href}
-              className={active === link.id ? "text-[#1A1A1A]" : "text-[#808080] hover:text-[#1A1A1A] transition-colors"}
-            >
-              {link.name}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const linkElement = (
+              <Link
+                key={link.id}
+                href={link.href}
+                className={active === link.id ? "text-[#1A1A1A]" : "text-[#808080] hover:text-[#1A1A1A] transition-colors"}
+              >
+                {link.name}
+              </Link>
+            );
+
+            if (link.id === "affiliates") {
+              return <ComingSoonTooltip key={link.id}>{linkElement}</ComingSoonTooltip>;
+            }
+
+            return linkElement;
+          })}
         </nav>
 
         {/* Icons & Divider */}
@@ -114,16 +123,24 @@ export default function Navbar({ active = "home" }: NavbarProps) {
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
         <div className="absolute top-[65px] left-0 right-0 bg-white rounded-[12px] p-6 shadow-xl lg:hidden z-[100] flex flex-col gap-4 font-medium text-[18px]">
-          {navLinks.map((link) => (
-            <Link
-              key={link.id}
-              href={link.href}
-              className={active === link.id ? "text-[#1A1A1A]" : "text-[#808080]"}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {link.name}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const linkElement = (
+              <Link
+                key={link.id}
+                href={link.href}
+                className={active === link.id ? "text-[#1A1A1A]" : "text-[#808080]"}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.name}
+              </Link>
+            );
+
+            if (link.id === "affiliates") {
+              return <ComingSoonTooltip key={link.id}>{linkElement}</ComingSoonTooltip>;
+            }
+
+            return linkElement;
+          })}
           <div className="h-[1px] bg-[#E5E5E5] w-full my-2" />
             <div className="flex items-center gap-2">
               <button 
