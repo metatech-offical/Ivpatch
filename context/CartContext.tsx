@@ -89,7 +89,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const getOrCreateCart = useCallback(async (): Promise<string | null> => {
     try {
       if (isLoggedIn && user) {
-        const { data: existingCart } = await supabase
+        const { data: existingCart } = await (supabase as any)
           .from("carts")
           .select("id")
           .eq("user_id", user.id)
@@ -99,7 +99,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         if (existingCart) return existingCart.id;
 
-        const { data: newCart, error } = await supabase
+        const { data: newCart, error } = await (supabase as any)
           .from("carts")
           .insert({ user_id: user.id })
           .select("id")
@@ -111,7 +111,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const sessionId = getSessionId();
         if (!sessionId) return null;
 
-        const { data: existingCart } = await supabase
+        const { data: existingCart } = await (supabase as any)
           .from("carts")
           .select("id")
           .eq("session_id", sessionId)
@@ -121,7 +121,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         if (existingCart) return existingCart.id;
 
-        const { data: newCart, error } = await supabase
+        const { data: newCart, error } = await (supabase as any)
           .from("carts")
           .insert({ session_id: sessionId })
           .select("id")
@@ -143,7 +143,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!id) return;
       setCartId(id);
 
-      const { data: cartItems, error } = await supabase
+      const { data: cartItems, error } = await (supabase as any)
         .from("cart_items")
         .select(`
           id,
@@ -233,7 +233,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setCartId(currentCartId);
       }
 
-      const matchQuery = supabase
+      const matchQuery = (supabase as any)
         .from("cart_items")
         .select("id, quantity")
         .eq("cart_id", currentCartId)
@@ -248,7 +248,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const { data: existing } = await matchQuery.maybeSingle();
 
       if (existing) {
-        await supabase
+        await (supabase as any)
           .from("cart_items")
           .update({
             quantity: existing.quantity + 1,
@@ -256,7 +256,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           })
           .eq("id", existing.id);
       } else {
-        await supabase.from("cart_items").insert({
+        await (supabase as any).from("cart_items").insert({
           cart_id: currentCartId,
           product_id: product.product_id,
           variant_id: product.variant_id || null,
@@ -279,7 +279,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (!id.startsWith("temp-")) {
       try {
-        await supabase.from("cart_items").delete().eq("id", id);
+        await (supabase as any).from("cart_items").delete().eq("id", id);
       } catch (err) {
         console.error("Remove item error:", err);
       }
@@ -301,7 +301,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (!id.startsWith("temp-") && newQty > 0) {
       try {
-        await supabase
+        await (supabase as any)
           .from("cart_items")
           .update({
             quantity: newQty,

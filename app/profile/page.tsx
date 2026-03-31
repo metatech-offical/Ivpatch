@@ -67,7 +67,7 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     if (!user) return;
     try {
-      await supabase
+      await (supabase as any)
         .from("profiles")
         .update({
           first_name: profileForm.first_name,
@@ -85,7 +85,7 @@ export default function ProfilePage() {
   const handleAddAddress = async () => {
     if (!user || !addressForm.address_line1 || !addressForm.city) return;
     try {
-      await supabase.from("user_addresses").insert({
+      await (supabase as any).from("user_addresses").insert({
         user_id: user.id,
         ...addressForm,
       });

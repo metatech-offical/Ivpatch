@@ -56,13 +56,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fetch profile from Supabase profiles table
   const fetchProfile = useCallback(async (userId: string): Promise<User | null> => {
     try {
-      const query = Promise.resolve(
+      const query = new Promise<{ data: any, error: any }>((resolve) => {
         supabase
           .from("profiles")
           .select("*")
           .eq("id", userId)
           .single()
-      );
+          .then(resolve);
+      });
       
       const result = await withTimeout(query, 5000);
       if (!result) {
@@ -195,8 +196,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (data?.user) {
-      // Wait slightly longer for DB trigger to execute safely
-      await new Promise((resolve) => setTimeout(resolve, 800));
       const profile = await fetchProfile(data.user.id);
       
       if (profile) {

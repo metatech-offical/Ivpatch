@@ -26,7 +26,7 @@ export async function getProducts(filters: ProductFilters = {}) {
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
-  let query = supabase
+  let query = (supabase as any)
     .from("products")
     .select(
       `
@@ -83,7 +83,7 @@ export async function getProducts(filters: ProductFilters = {}) {
 }
 
 export async function getProductBySlug(slug: string) {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("products")
     .select(
       `
@@ -118,7 +118,7 @@ export async function createProduct(
     benefits?: string;
   }
 ) {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("products")
     .insert(productData)
     .select()
@@ -132,7 +132,7 @@ export async function updateProduct(
   id: string,
   updates: Record<string, unknown>
 ) {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("products")
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq("id", id)
@@ -160,7 +160,7 @@ export async function createVariant(variantData: {
   option1_name?: string;
   option1_value?: string;
 }) {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("product_variants")
     .insert(variantData)
     .select()
@@ -174,7 +174,7 @@ export async function updateVariant(
   id: string,
   updates: Record<string, unknown>
 ) {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("product_variants")
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq("id", id)
@@ -186,7 +186,7 @@ export async function updateVariant(
 }
 
 export async function deleteVariant(id: string) {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from("product_variants")
     .delete()
     .eq("id", id);
@@ -218,7 +218,7 @@ export async function uploadProductImage(
   } = supabase.storage.from("product-images").getPublicUrl(fileName);
 
   // Insert image record
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("product_images")
     .insert({
       product_id: productId,
@@ -234,7 +234,7 @@ export async function uploadProductImage(
 }
 
 export async function deleteProductImage(imageId: string) {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from("product_images")
     .delete()
     .eq("id", imageId);
@@ -245,7 +245,7 @@ export async function deleteProductImage(imageId: string) {
 // ─── Collections ─────────────────────────────────────────────
 
 export async function getCollections() {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("collections")
     .select("*")
     .eq("is_visible", true)

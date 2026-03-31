@@ -69,7 +69,6 @@ export default function RegisterPage() {
       } else {
         setError(message);
       }
-    } finally {
       setLoading(false);
     }
   };

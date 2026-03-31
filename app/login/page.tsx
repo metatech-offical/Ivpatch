@@ -37,7 +37,6 @@ export default function LoginPage() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Login failed";
       setError(message);
-    } finally {
       setLoading(false);
     }
   };
