@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function HeroSection() {
@@ -7,12 +8,6 @@ export default function HeroSection() {
   const [isTransitioning, setIsTransitioning] = useState(true);
 
   const slides = [
-    {
-      image: "/hero-1.svg",
-      headline: "Elevate\nYour Skin",
-      description: "An elite marine collagen formula designed to firm, plump, and revive, delivering transformative results.",
-      layout: "product-focus",
-    },
     {
       image: "/hero-2.svg",
       headline: "Care That\nFits Life",
@@ -24,6 +19,12 @@ export default function HeroSection() {
       headline: "Find Your\nFormula",
       description: "Explore our complete range of\nperformance-driven patches, crafted to\nsupport your unique journey.",
       layout: "range-focus",
+    },
+    {
+      image: "/hero-1.svg",
+      headline: "Elevate\nYour Skin",
+      description: "An elite marine collagen formula designed to firm, plump, and revive, delivering transformative results.",
+      layout: "product-focus",
     },
   ];
 
@@ -73,10 +74,13 @@ export default function HeroSection() {
         >
           {displaySlides.map((slide, index) => (
             <div key={index} className="w-full h-full shrink-0 relative overflow-hidden">
-              <img
-                alt={`Hero slide ${index}`}
-                className="w-full h-full object-cover object-center pointer-events-none"
+              <Image
                 src={slide.image}
+                alt={`Hero slide ${index}`}
+                fill
+                priority={index === 0}
+                className={`object-cover pointer-events-none ${slide.image === "/hero-1.svg" ? "object-[20%_center] md:object-center" : "object-center"}`}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1252px"
               />
               <div className="absolute inset-0 bg-black/10 md:bg-black/5 pointer-events-none" />
 

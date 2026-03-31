@@ -3,9 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CartDrawer() {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalItems, subtotal } = useCart();
+  const { isLoggedIn } = useAuth();
 
   if (!isOpen) return null;
 
@@ -139,7 +141,7 @@ export default function CartDrawer() {
           </div>
 
           <Link 
-            href="/checkout" 
+            href={isLoggedIn ? "/checkout" : "/login"} 
             onClick={() => setIsOpen(false)}
             className="w-full"
           >

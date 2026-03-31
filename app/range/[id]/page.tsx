@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
@@ -11,101 +11,168 @@ import ProductCard from "@/components/sections/range/ProductCard";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import VitaminsSplashSection from "@/components/sections/range/VitaminsSplashSection";
 import { useCart } from "@/context/CartContext";
+import { getProductBySlug, getProducts } from "@/lib/supabase/products";
+import type { ProductWithRelations } from "@/lib/supabase/types";
 
-const TOP_PICKS = [
-  { id: "collagen-formula", name: "Collagen Formula", price: "$94", image: "/product1.svg", bg: "bg-white" },
-  { id: "energy-release", name: "Energy Release", price: "$94", image: "/product6.svg", bg: "bg-white" },
-  { id: "immunity", name: "Immunity", price: "$94", image: "/product3.svg", bg: "bg-white" },
-  { id: "nmn-nad", name: "NMN/NAD+", price: "$94", image: "/product4.svg", bg: "bg-white" },
-];
-
-const PRODUCTS_DETAIL = {
-  "neuro-boost": {
-    name: "Neuro Boost",
-    description: "Powered by Lion’s Mane, Ginkgo Biloba, and L-Theanine, this patch helps improve mental clarity, memory recall, and stress resilience. Perfect for work, studying, and high-performance tasks.",
-    price: "$102",
-    discount: "Save 20%",
-    images: ["/product2.svg", "/product4.svg", "/product1.svg"],
-    color: "#fcdb59",
-  },
-  "collagen-formula": {
-    name: "Collagen Formula",
-    description: "Support your skin's natural elasticity and glow with our Collagen Formula patch. Designed to fit seamlessly into your beauty routine.",
-    price: "$94",
-    discount: "Save 15%",
-    images: ["/product1.svg", "/product3.svg", "/product5.svg"],
-    color: "#ffffff",
-  },
-  "immunity": {
-    name: "Immunity",
-    description: "Stay strong and resilient with our Immunity patch, packed with essential vitamins and natural extracts to support your body's defenses.",
-    price: "$94",
-    discount: "Save 10%",
-    images: ["/product3.svg", "/product2.svg", "/product4.svg"],
-    color: "#ffffff",
-  },
-  "nmn-nad": {
-    name: "NMN/NAD+",
-    description: "Advanced cellular support for longevity and energy. Our NMN/NAD+ patch provides a steady release of age-defying nutrients.",
-    price: "$94",
-    discount: "Save 25%",
-    images: ["/product4.svg", "/product6.svg", "/product1.svg"],
-    color: "#ffffff",
-  },
-  "muscle-fuel": {
-    name: "Muscle Fuel",
-    description: "Optimize your recovery and performance. Muscle Fuel provides essential amino acids and energy boosters for your fitness journey.",
-    price: "$94",
-    discount: "Save 20%",
-    images: ["/product5.svg", "/product7.svg", "/product2.svg"],
-    color: "#ffffff",
-  },
-  "energy-release": {
-    name: "Energy Release",
-    description: "A natural, steady energy boost without the crash. Perfect for long days and active lifestyles.",
-    price: "$94",
-    discount: "Save 10%",
-    images: ["/product6.svg", "/product1.svg", "/product3.svg"],
-    color: "#ffffff",
-  },
-  "erectile-dysfunction": {
-    name: "Erectile Dysfunction",
-    description: "Discreet and effective support for male vitality and performance. Designed for confidence and wellness.",
-    price: "$94",
-    discount: "Save 30%",
-    images: ["/product7.svg", "/product5.svg", "/product2.svg"],
-    color: "#ffffff",
-  }
+// Slug-aware fallbacks so every product page renders immediately
+const SLUG_FALLBACKS: Record<string, {
+  name: string; description: string; price: string; discount: string;
+  images: string[]; color: string;
+}> = {
+  "collagen-formula": { name: "Collagen Formula", description: "Support your skin's natural elasticity and glow with our Collagen Formula patch.", price: "$94", discount: "Save 27%", images: ["/product1.svg", "/product3.svg", "/product5.svg"], color: "#ffffff" },
+  "neuro-boost": { name: "Neuro Boost", description: "Powered by Lion's Mane, Ginkgo Biloba, and L-Theanine, this patch helps improve mental clarity, memory recall, and stress resilience.", price: "$94", discount: "Save 27%", images: ["/product2.svg", "/product4.svg", "/product1.svg"], color: "#fcdb59" },
+  "immunity": { name: "Immunity", description: "Stay strong and resilient with our Immunity patch, packed with essential vitamins and natural extracts.", price: "$94", discount: "Save 21%", images: ["/product3.svg", "/product2.svg", "/product4.svg"], color: "#ffffff" },
+  "nmn-nad": { name: "NMN/NAD+", description: "Our most advanced anti-aging formula. NMN/NAD+ patches deliver nicotinamide mononucleotide directly into your system.", price: "$94", discount: "Save 37%", images: ["/product4.svg", "/product6.svg", "/product1.svg"], color: "#ffffff" },
+  "muscle-fuel": { name: "Muscle Fuel", description: "Designed for athletes and fitness enthusiasts. Muscle Fuel patches deliver essential amino acids for faster recovery.", price: "$94", discount: "Save 27%", images: ["/product5.svg", "/product7.svg", "/product2.svg"], color: "#ffffff" },
+  "energy-release": { name: "Energy Release", description: "Sustained energy without the crash. Our Energy Release patch provides a steady stream of natural energy-boosting nutrients.", price: "$94", discount: "Save 21%", images: ["/product6.svg", "/product1.svg", "/product3.svg"], color: "#ffffff" },
+  "erectile-dysfunction": { name: "Erectile Dysfunction", description: "A discreet, prescription-grade transdermal solution for supporting male vitality and circulation.", price: "$94", discount: "Save 37%", images: ["/product7.svg", "/product5.svg", "/product2.svg"], color: "#ffffff" },
 };
 
-type ProductId = keyof typeof PRODUCTS_DETAIL;
+function getFallback(slug: string) {
+  const fb = SLUG_FALLBACKS[slug] || SLUG_FALLBACKS["neuro-boost"];
+  return {
+    ...fb,
+    id: "",
+    slug,
+    ingredients: "",
+    usage_instructions: "",
+    benefits: "",
+    variants: [] as Array<{ id: string; variant_name: string; price: number }>,
+  };
+}
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const id = (params.id as string) || "neuro-boost";
-  const product = PRODUCTS_DETAIL[id as ProductId] || PRODUCTS_DETAIL["neuro-boost"];
+  const slug = (params.id as string) || "neuro-boost";
+  const fallback = getFallback(slug);
 
-  const [selectedImage, setSelectedImage] = useState(product.images[0]);
-  const [selectedPlan, setSelectedPlan] = useState("Monthly");
+  const [product, setProduct] = useState(fallback);
+  const [relatedProducts, setRelatedProducts] = useState<Array<{
+    id: string; product_id: string; name: string; price: string; image: string; bg: string;
+  }>>([
+    { id: "collagen-formula", product_id: "", name: "Collagen Formula", price: "$94", image: "/product1.svg", bg: "bg-white" },
+    { id: "energy-release", product_id: "", name: "Energy Release", price: "$94", image: "/product6.svg", bg: "bg-white" },
+    { id: "immunity", product_id: "", name: "Immunity", price: "$94", image: "/product3.svg", bg: "bg-white" },
+    { id: "nmn-nad", product_id: "", name: "NMN/NAD+", price: "$94", image: "/product4.svg", bg: "bg-white" },
+  ]);
+  const [selectedImage, setSelectedImage] = useState(fallback.images[0]);
+  const [selectedPlan, setSelectedPlan] = useState("Single Patch (30-Day)");
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
 
   const { addItem } = useCart();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    // Reset to this slug's fallback immediately, then load from DB
+    const fb = getFallback(slug);
+    setProduct(fb);
+    setSelectedImage(fb.images[0]);
+    loadProduct();
+    loadRelated();
+  }, [slug]);
+
+  const loadProduct = async () => {
+    // Timeout protection — never hang longer than 5s
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    try {
+      const data: ProductWithRelations = await getProductBySlug(slug);
+      clearTimeout(timeoutId);
+
+      const primaryImage = data.product_images?.find(img => img.is_primary) || data.product_images?.[0];
+      const images = data.product_images?.map(img => img.image_url) || ["/product1.svg"];
+      const comparePrice = data.compare_at_price;
+      const discount = comparePrice
+        ? `Save ${Math.round(((comparePrice - data.base_price) / comparePrice) * 100)}%`
+        : "";
+
+      const variants = data.product_variants?.map(v => ({
+        id: v.id,
+        variant_name: v.variant_name,
+        price: v.price,
+      })) || [];
+
+      setProduct({
+        name: data.name,
+        description: data.description || "",
+        price: `$${data.base_price}`,
+        discount,
+        images: images.length > 0 ? images : ["/product1.svg"],
+        color: slug === "neuro-boost" ? "#fcdb59" : "#ffffff",
+        id: data.id,
+        slug: data.slug,
+        ingredients: data.ingredients || "",
+        usage_instructions: data.usage_instructions || "",
+        benefits: data.benefits || "",
+        variants,
+      });
+
+      setSelectedImage(primaryImage?.image_url || images[0] || "/product1.svg");
+      if (variants.length > 0) {
+        setSelectedPlan(variants[0].variant_name);
+      }
+    } catch (err) {
+      clearTimeout(timeoutId);
+      console.error("Failed to load product:", err);
+      // Keep fallback which was already set
+    }
+  };
+
+  const loadRelated = async () => {
+    try {
+      const { products } = await getProducts({ status: "active", limit: 4 });
+      setRelatedProducts(
+        products
+          .filter(p => p.slug !== slug)
+          .slice(0, 4)
+          .map(p => {
+            const img = p.product_images?.find(i => i.is_primary) || p.product_images?.[0];
+            return {
+              id: p.slug,
+              product_id: p.id,
+              name: p.name,
+              price: `$${p.base_price}`,
+              image: img?.image_url || "/product1.svg",
+              bg: p.slug === "neuro-boost" ? "bg-gradient-to-b from-[#fcdb59] to-[#dcbe3c]" : "bg-white",
+            };
+          })
+      );
+    } catch {
+      // Fallback
+      setRelatedProducts([
+        { id: "collagen-formula", product_id: "", name: "Collagen Formula", price: "$94", image: "/product1.svg", bg: "bg-white" },
+        { id: "energy-release", product_id: "", name: "Energy Release", price: "$94", image: "/product6.svg", bg: "bg-white" },
+        { id: "immunity", product_id: "", name: "Immunity", price: "$94", image: "/product3.svg", bg: "bg-white" },
+        { id: "nmn-nad", product_id: "", name: "NMN/NAD+", price: "$94", image: "/product4.svg", bg: "bg-white" },
+      ]);
+    }
+  };
+
+  const selectedVariant = product.variants.find(v => v.variant_name === selectedPlan);
+  const displayPrice = selectedVariant ? `$${selectedVariant.price}` : product.price;
+
   const handleAddToCart = () => {
     addItem({
-      id: id as string,
+      product_id: product.id || slug,
+      variant_id: selectedVariant?.id,
       name: product.name,
-      price: parseInt(product.price.replace('$', '')),
+      price: selectedVariant?.price || parseFloat(product.price.replace("$", "")),
       image: product.images[0],
       plan: selectedPlan
     });
   };
 
-  const plans = ["Monthly", "Quarterly", "Yearly"];
   const accordions = [
-    { id: "description", title: "Description", content: "Neuro Boost is a next-generation nootropic patch designed to elevate focus, memory, and mental clarity, without the crashes of traditional stimulants. Formulated with powerful, science-backed ingredients like Lion's Mane, Ginkgo Biloba, and L-Theanine, it delivers sustained cognitive support directly through the skin for steady, long-lasting performance. Whether you're working. studying, or navigating a high-performance lifestyle, Neuro Boost helps reduce brain fog, enhance concentration, and support overall cognitive health, so you stay sharp, calm, and in control throughout the day." },
     {
-      id: "how-to-use", title: "How To Use", content: (
+      id: "description",
+      title: "Description",
+      content: product.description || "No description available."
+    },
+    {
+      id: "how-to-use", title: "How To Use", content: product.usage_instructions ? (
+        <p className="text-[#4D4D4D]">{product.usage_instructions}</p>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { icon: "/icon1.svg", title: "Peel & Place", sub: "Gently remove the patch from its backing and apply it to clean, dry, hair-free skin." },
@@ -128,18 +195,14 @@ export default function ProductDetailPage() {
       )
     },
     {
-      id: "ingredients", title: "Ingredients", content: (
+      id: "ingredients", title: "Ingredients", content: product.ingredients ? (
         <ul className="flex flex-col gap-3 list-disc pl-5 text-[#4D4D4D]">
-          <li><strong className="text-[#4D4D4D]">Lion’s Mane Mushroom:</strong> Memory enhancement, neuroprotection, Supports cognitive function.</li>
-          <li><strong className="text-[#4D4D4D]">Ginkgo Biloba:</strong> Increased blood flow, mental clarity.</li>
-          <li><strong className="text-[#4D4D4D]">Ginseng:</strong> Energy boost, stress reduction, combats fatigue.</li>
-          <li><strong className="text-[#4D4D4D]">Phosphatidylserine:</strong> Brain cell health and cognitive performance.</li>
-          <li><strong className="text-[#4D4D4D]">B-Complex Vitamins:</strong> Mental clarity, energy production.</li>
-          <li><strong className="text-[#4D4D4D]">Ashwagandha:</strong> Stress and anxiety reduction.</li>
-          <li><strong className="text-[#4D4D4D]">L-Theanine:</strong> Focus without jitters, calm alertness.</li>
-          <li><strong className="text-[#4D4D4D]">Gotu Kola:</strong> Improves circulation, supports cognitive function.</li>
-          <li><strong className="text-[#4D4D4D]">Glutathione:</strong> Tissue building and repair, immune system function support.</li>
+          {product.ingredients.split(",").map((ingredient, idx) => (
+            <li key={idx}><strong className="text-[#4D4D4D]">{ingredient.trim()}</strong></li>
+          ))}
         </ul>
+      ) : (
+        <p className="text-[#4D4D4D]">Ingredients not listed.</p>
       )
     },
     {
@@ -155,6 +218,13 @@ export default function ProductDetailPage() {
       )
     }
   ];
+
+  // Plans come from variants or fallback
+  const plans = product.variants.length > 0
+    ? product.variants.map(v => v.variant_name)
+    : ["Monthly", "Quarterly", "Yearly"];
+
+  // No loading skeleton — always show content (fallback or DB data)
 
   return (
     <main className="bg-[#f2f2f2] min-h-screen px-[20px] py-[22px]">
@@ -200,10 +270,8 @@ export default function ProductDetailPage() {
 
           {/* Right Section - Info & Details */}
           <div className="flex-1 flex flex-col gap-[20px]">
-            {/* Product Card */}
-            {/* Product Card */}
             <div className="bg-white w-full lg:w-[561px] h-auto lg:min-h-[646px] rounded-[24px] p-8 md:p-[40px] shadow-sm relative flex flex-col">
-              {/* Heart icon placeholder */}
+              {/* Heart icon */}
               <div className="absolute top-[20px] md:top-[30px] right-[20px] md:right-[30px] w-[32px] md:w-[40px] h-[32px] md:h-[40px] rounded-full bg-[#F5F5F5] flex items-center justify-center cursor-pointer hover:bg-[#eee] transition-colors">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.5" className="w-[20px] md:w-[24px] h-[20px] md:h-[24px]">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -219,8 +287,8 @@ export default function ProductDetailPage() {
               </p>
 
               <div className="my-[30px] md:my-[40px] flex items-baseline gap-4">
-                <span className="text-[#1a1a1a] text-[32px] md:text-[42px] font-['Satoshi:Medium',sans-serif]">{product.price}</span>
-                <span className="text-[#E11066] text-[16px] font-['Satoshi:Regular',sans-serif]">{product.discount}</span>
+                <span className="text-[#1a1a1a] text-[32px] md:text-[42px] font-['Satoshi:Medium',sans-serif]">{displayPrice}</span>
+                {product.discount && <span className="text-[#E11066] text-[16px] font-['Satoshi:Regular',sans-serif]">{product.discount}</span>}
               </div>
 
               <div className="mt-4 md:mt-8">
@@ -230,7 +298,7 @@ export default function ProductDetailPage() {
                     <button
                       key={plan}
                       onClick={() => setSelectedPlan(plan)}
-                      className={`w-[90px] md:w-[151px] h-[40px] md:h-[47px] rounded-[16px] border flex items-center justify-center text-[14px] md:text-[16px] font-['Satoshi:Regular',sans-serif] transition-all ${selectedPlan === plan ? 'border-black text-black' : 'border-transparent bg-[#F5F5F5] text-[#4D4D4D]'}`}
+                      className={`px-4 md:px-6 h-[40px] md:h-[47px] rounded-[16px] border flex items-center justify-center text-[14px] md:text-[16px] font-['Satoshi:Regular',sans-serif] transition-all ${selectedPlan === plan ? 'border-black text-black' : 'border-transparent bg-[#F5F5F5] text-[#4D4D4D]'}`}
                     >
                       {plan}
                     </button>
@@ -287,8 +355,8 @@ export default function ProductDetailPage() {
             Top Picks for you
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-10">
-            {TOP_PICKS.map((product) => (
-              <ProductCard key={product.id} {...product} />
+            {relatedProducts.map((rp) => (
+              <ProductCard key={rp.id} {...rp} />
             ))}
           </div>
         </section>

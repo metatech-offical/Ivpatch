@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 
 type ProductCardProps = {
-  id: string;
+  id: string;          // This is the product slug for navigation
+  product_id: string;  // UUID from Supabase for cart operations
   name: string;
   price: string;
   image: string;
@@ -13,7 +14,7 @@ type ProductCardProps = {
   buttonText?: string;
 };
 
-export default function ProductCard({ id, name, price, image, bg, buttonText = "Add to Cart" }: ProductCardProps) {
+export default function ProductCard({ id, product_id, name, price, image, bg, buttonText = "Add to Cart" }: ProductCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const { addItem } = useCart();
@@ -22,11 +23,11 @@ export default function ProductCard({ id, name, price, image, bg, buttonText = "
     e.stopPropagation();
     e.preventDefault();
     addItem({
-      id,
+      product_id: product_id,
       name,
-      price: parseInt(price.replace('$', '')),
+      price: parseFloat(price.replace(/[^0-9.]/g, '')),
       image,
-      plan: "Monthly"
+      plan: "Single Patch (30-Day)"
     });
   };
 

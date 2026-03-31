@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import DashboardOverview from "@/components/admin/sections/DashboardOverview";
 import OrdersSection from "@/components/admin/sections/OrdersSection";
 import ProductsSection from "@/components/admin/sections/ProductsSection";
@@ -30,12 +32,17 @@ export default function AdminPage() {
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const { user, isLoggedIn, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (mounted && !isLoading && (!isLoggedIn || user?.role !== "admin")) {
+      router.push("/login");
+    }
+  }, [mounted, isLoading, isLoggedIn, user, router]);
 
-  if (!mounted) return null;
+  if (!mounted || isLoading || !isLoggedIn || user?.role !== "admin") return null;
 
   const renderSection = () => {
     switch (activeSection) {

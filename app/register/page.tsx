@@ -19,6 +19,7 @@ export default function RegisterPage() {
     confirmPassword: ""
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const router = useRouter();
 
@@ -29,25 +30,45 @@ export default function RegisterPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
+    setLoading(true);
+
     try {
-      register({
+      const newUser = await register({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        phone: formData.phone
+        phone: formData.phone,
+        password: formData.password,
       });
-      router.push("/profile");
-    } catch (err) {
-      setError("Registration failed. Please try again.");
+
+      if (newUser) {
+        router.push("/profile");
+      } else {
+        setError("Registration failed. Please try again.");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Registration failed";
+      if (message.includes("already registered")) {
+        setError("This email is already registered. Please sign in instead.");
+      } else {
+        setError(message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,6 +91,7 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className="h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
                   required
+                  disabled={loading}
                 />
                 <input
                   name="lastName"
@@ -78,6 +100,7 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className="h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
                   required
+                  disabled={loading}
                 />
               </div>
 
@@ -88,6 +111,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 className="w-full h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
                 required
+                disabled={loading}
               />
 
               <input
@@ -98,17 +122,20 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 className="w-full h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
                 required
+                disabled={loading}
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   name="password"
                   type="password"
-                  placeholder="Password"
+                  placeholder="Password (min. 8 characters)"
                   value={formData.password}
                   onChange={handleChange}
                   className="h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
                   required
+                  minLength={8}
+                  disabled={loading}
                 />
                 <input
                   name="confirmPassword"
@@ -118,6 +145,7 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className="h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
                   required
+                  disabled={loading}
                 />
               </div>
 
@@ -127,9 +155,20 @@ export default function RegisterPage() {
 
               <button
                 type="submit"
-                className="w-full h-[60px] bg-[#1A1A1A] text-white rounded-[12px] text-[20px] font-['Satoshi:Regular',sans-serif] hover:bg-black transition-all shadow-lg active:scale-[0.98] flex items-center justify-center"
+                disabled={loading}
+                className="w-full h-[60px] bg-[#1A1A1A] text-white rounded-[12px] text-[20px] font-['Satoshi:Regular',sans-serif] hover:bg-black transition-all shadow-lg active:scale-[0.98] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Create Account
+                {loading ? (
+                  <div className="flex items-center gap-3">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Creating account…
+                  </div>
+                ) : (
+                  "Create Account"
+                )}
               </button>
 
               <div className="flex items-center justify-between text-[14px] font-['Satoshi:Regular',sans-serif]">

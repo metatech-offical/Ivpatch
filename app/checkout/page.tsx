@@ -279,6 +279,7 @@ export default function CheckoutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[20px] w-full max-w-[350px] md:max-w-none">
              <ProductCard 
                 id="energy-release"
+                product_id=""
                 name="Energy Release"
                 price="$94"
                 image="/product4.svg"
@@ -287,6 +288,7 @@ export default function CheckoutPage() {
              />
              <ProductCard 
                 id="neuro-boost"
+                product_id=""
                 name="Neuro Boost"
                 price="$102"
                 image="/product3.svg"
@@ -295,6 +297,7 @@ export default function CheckoutPage() {
              />
              <ProductCard 
                 id="collagen-formula"
+                product_id=""
                 name="Collagen Formula"
                 price="$94"
                 image="/product2.svg"
@@ -303,6 +306,7 @@ export default function CheckoutPage() {
              />
              <ProductCard 
                 id="ed"
+                product_id=""
                 name="ED"
                 price="$94"
                 image="/product5.svg"
