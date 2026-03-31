@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import ComingSoonTooltip from "@/components/ui/ComingSoonTooltip";
 
 type NavbarProps = {
@@ -15,6 +15,8 @@ export default function Navbar({ active = "home" }: NavbarProps) {
   const { hasItems, setIsOpen } = useCart();
   const { isLoggedIn } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const isAuthPage = ['/profile', '/login', '/register'].includes(pathname);
 
   const handleProfileClick = () => {
     if (isLoggedIn) {
@@ -56,7 +58,7 @@ export default function Navbar({ active = "home" }: NavbarProps) {
               <Link
                 key={link.id}
                 href={link.href}
-                className={active === link.id ? "text-[#1A1A1A]" : "text-[#808080] hover:text-[#1A1A1A] transition-colors"}
+                className={active === link.id && !isAuthPage ? "text-[#1A1A1A]" : "text-[#808080] hover:text-[#1A1A1A] transition-colors"}
               >
                 {link.name}
               </Link>
@@ -87,7 +89,9 @@ export default function Navbar({ active = "home" }: NavbarProps) {
           <button 
             aria-label="User" 
             onClick={handleProfileClick}
-            className="p-1 text-[#808080] hover:text-[#1A1A1A] transition-colors flex items-center group"
+            className={`p-1 flex items-center group transition-colors ${
+              isAuthPage ? 'text-[#1A1A1A]' : 'text-[#808080] hover:text-[#1A1A1A]'
+            }`}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-[24px] h-[24px]">
               <path d="M12.0001 12.5664C14.3913 12.5664 16.3297 10.628 16.3297 8.2368C16.3297 5.84562 14.3913 3.9072 12.0001 3.9072C9.60895 3.9072 7.67053 5.84562 7.67053 8.2368C7.67053 10.628 9.60895 12.5664 12.0001 12.5664Z" stroke="currentColor" strokeWidth="0.96" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
@@ -128,7 +132,7 @@ export default function Navbar({ active = "home" }: NavbarProps) {
               <Link
                 key={link.id}
                 href={link.href}
-                className={active === link.id ? "text-[#1A1A1A]" : "text-[#808080]"}
+                className={active === link.id && !isAuthPage ? "text-[#1A1A1A]" : "text-[#808080]"}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.name}
@@ -161,7 +165,9 @@ export default function Navbar({ active = "home" }: NavbarProps) {
                   setIsMenuOpen(false);
                   handleProfileClick();
                 }}
-                className="text-[#808080] hover:text-[#1A1A1A] transition-colors flex items-center group"
+                className={`flex items-center group transition-colors ${
+                  isAuthPage ? 'text-[#1A1A1A]' : 'text-[#808080] hover:text-[#1A1A1A]'
+                }`}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-[24px] h-[24px]">
                   <path d="M12.0001 12.5664C14.3913 12.5664 16.3297 10.628 16.3297 8.2368C16.3297 5.84562 14.3913 3.9072 12.0001 3.9072C9.60895 3.9072 7.67053 5.84562 7.67053 8.2368C7.67053 10.628 9.60895 12.5664 12.0001 12.5664Z" stroke="currentColor" strokeWidth="0.96" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>

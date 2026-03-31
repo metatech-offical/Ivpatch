@@ -56,12 +56,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fetch profile from Supabase profiles table
   const fetchProfile = useCallback(async (userId: string): Promise<User | null> => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      const query = Promise.resolve(
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single()
+      );
+      
+      const result = await withTimeout(query, 5000);
+      if (!result) {
+        return null;
+      }
 
+      const { data, error } = result;
       if (error || !data) return null;
       return profileToUser(data as Profile);
     } catch {
@@ -116,20 +124,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, fetchProfile]);
 
   const login = async (email: string, password: string): Promise<User | null> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const signInPromise = Promise.resolve(supabase.auth.signInWithPassword({
       email,
       password,
-    });
+    }));
+    
+    const result = await withTimeout(signInPromise, 10000);
+    if (!result) {
+      throw new Error("Login request timed out. Please check your connection.");
+    }
 
+    const { data, error } = result;
     if (error) {
       console.error("Login error:", error.message);
       throw new Error(error.message);
     }
 
-    if (data.user) {
+    if (data?.user) {
       const profile = await fetchProfile(data.user.id);
-      setUser(profile);
-      return profile;
+      if (profile) {
+        setUser(profile);
+        return profile;
+      }
+
+      // Fallback if profile row is missing or timed out
+      const fallbackUser: User = {
+        id: data.user.id,
+        name: data.user.user_metadata?.first_name 
+          ? `${data.user.user_metadata.first_name} ${data.user.user_metadata.last_name || ""}`.trim()
+          : data.user.email?.split("@")[0] || "User",
+        email: data.user.email || "",
+        phone: data.user.user_metadata?.phone || "",
+        role: "customer"
+      };
+      setUser(fallbackUser);
+      return fallbackUser;
     }
 
     return null;
@@ -142,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     phone: string;
     password: string;
   }): Promise<User | null> => {
-    const { data, error } = await supabase.auth.signUp({
+    const signUpPromise = Promise.resolve(supabase.auth.signUp({
       email: registerData.email,
       password: registerData.password,
       options: {
@@ -152,19 +181,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           phone: registerData.phone,
         },
       },
-    });
+    }));
 
+    const result = await withTimeout(signUpPromise, 10000);
+    if (!result) {
+      throw new Error("Registration timed out. Please try again.");
+    }
+
+    const { data, error } = result;
     if (error) {
       console.error("Register error:", error.message);
       throw new Error(error.message);
     }
 
-    if (data.user) {
-      // Wait a moment for the trigger to create the profile
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    if (data?.user) {
+      // Wait slightly longer for DB trigger to execute safely
+      await new Promise((resolve) => setTimeout(resolve, 800));
       const profile = await fetchProfile(data.user.id);
-      setUser(profile);
-      return profile;
+      
+      if (profile) {
+        setUser(profile);
+        return profile;
+      }
+      
+      // Fallback if trigger hasn't fired yet
+      const fallbackUser: User = {
+        id: data.user.id,
+        name: `${registerData.firstName} ${registerData.lastName}`.trim(),
+        email: registerData.email,
+        phone: registerData.phone,
+        role: "customer"
+      };
+      setUser(fallbackUser);
+      return fallbackUser;
     }
 
     return null;
