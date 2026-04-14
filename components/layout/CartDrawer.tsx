@@ -116,40 +116,51 @@ export default function CartDrawer() {
           ))}
 
           {items.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-black/40 gap-4">
-              <svg width="84" height="84" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                <path d="M9 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-              </svg>
-              <p className="text-[20px] font-['Satoshi:Medium',sans-serif]">Your cart is empty</p>
+            <div className="flex flex-col items-center justify-center flex-1 gap-[24px]">
+              <img src="/empty-cart.svg" alt="Empty Cart" className="w-[180px] h-auto object-contain mx-auto" />
+              <p className="text-[18px] font-['Satoshi:Regular',sans-serif] text-black text-center">Your cart is empty.</p>
             </div>
           )}
         </div>
 
         {/* Footer Section */}
-        <div className="bg-white px-8 h-[145px] flex flex-col justify-center gap-4 border-t border-black/5 mt-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <p className="text-black text-[20px] font-['Satoshi:Medium',sans-serif]">Subtotal</p>
-              <p className="text-[#4D4D4D] text-[14px] font-['Satoshi:Regular',sans-serif]">
-                *Shipping, taxes and discounts calculated at checkout
+        {items.length > 0 ? (
+          <div className="bg-white px-8 h-[145px] flex flex-col justify-center gap-4 border-t border-black/5 mt-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <p className="text-black text-[20px] font-['Satoshi:Medium',sans-serif]">Subtotal</p>
+                <p className="text-[#4D4D4D] text-[14px] font-['Satoshi:Regular',sans-serif]">
+                  *Shipping, taxes and discounts calculated at checkout
+                </p>
+              </div>
+              <p className="text-black text-[24px] font-['Satoshi:Medium',sans-serif]">
+                ${subtotal}
               </p>
             </div>
-            <p className="text-black text-[24px] font-['Satoshi:Medium',sans-serif]">
-              ${subtotal}
-            </p>
-          </div>
 
-          <Link 
-            href={isLoggedIn ? "/checkout" : "/login"} 
-            onClick={() => setIsOpen(false)}
-            className="w-full"
-          >
-            <button className="w-full h-[46px] bg-[#1A1A1A] text-white rounded-[16px] text-[18px] font-['Satoshi:Bold',sans-serif] hover:bg-black transition-all active:scale-[0.98]">
-              Proceed to checkout
-            </button>
-          </Link>
-        </div>
+            <Link 
+              href={isLoggedIn ? "/checkout" : "/login"} 
+              onClick={() => setIsOpen(false)}
+              className="w-full"
+            >
+              <button className="w-full h-[46px] bg-[#1A1A1A] text-white rounded-[16px] text-[18px] font-['Satoshi:Bold',sans-serif] hover:bg-black transition-all active:scale-[0.98]">
+                Proceed to checkout
+              </button>
+            </Link>
+          </div>
+        ) : (
+          <div className="px-8 h-[110px] flex flex-col justify-center gap-4 border-t border-black/5 mt-auto">
+            <Link 
+              href="/range" 
+              onClick={() => setIsOpen(false)}
+              className="w-full"
+            >
+              <button className="w-full h-[52px] bg-[#1A1A1A] text-white rounded-[16px] text-[18px] font-['Satoshi:Regular',sans-serif] hover:bg-black transition-all active:scale-[0.98]">
+                Continue Shopping
+              </button>
+            </Link>
+          </div>
+        )}
       </div>
 
       <style jsx>{`

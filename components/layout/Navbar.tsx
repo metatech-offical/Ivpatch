@@ -31,7 +31,7 @@ export default function Navbar({ active = "home" }: NavbarProps) {
     { name: "Range", href: "/range", id: "range" },
     { name: "Our Mission", href: "/our-mission", id: "our-mission" },
     { name: "Benefits", href: "/benefits", id: "benefits" },
-    { name: "Affiliates", href: "#", id: "affiliates" },
+    { name: "Affiliates", href: "/affiliates", id: "affiliates" },
   ];
 
   return (
@@ -63,10 +63,6 @@ export default function Navbar({ active = "home" }: NavbarProps) {
                 {link.name}
               </Link>
             );
-
-            if (link.id === "affiliates") {
-              return <ComingSoonTooltip key={link.id}>{linkElement}</ComingSoonTooltip>;
-            }
 
             return linkElement;
           })}
@@ -138,10 +134,6 @@ export default function Navbar({ active = "home" }: NavbarProps) {
                 {link.name}
               </Link>
             );
-
-            if (link.id === "affiliates") {
-              return <ComingSoonTooltip key={link.id}>{linkElement}</ComingSoonTooltip>;
-            }
 
             return linkElement;
           })}

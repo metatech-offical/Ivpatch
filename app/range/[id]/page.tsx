@@ -16,16 +16,16 @@ import type { ProductWithRelations } from "@/lib/supabase/types";
 
 // Slug-aware fallbacks so every product page renders immediately
 const SLUG_FALLBACKS: Record<string, {
-  name: string; description: string; price: string; discount: string;
+  name: string; short_description?: string; description: string; price: string; discount: string;
   images: string[]; color: string;
 }> = {
-  "collagen-formula": { name: "Collagen Formula", description: "Support your skin's natural elasticity and glow with our Collagen Formula patch.", price: "$94", discount: "Save 27%", images: ["/product1.svg", "/product3.svg", "/product5.svg"], color: "#ffffff" },
-  "neuro-boost": { name: "Neuro Boost", description: "Powered by Lion's Mane, Ginkgo Biloba, and L-Theanine, this patch helps improve mental clarity, memory recall, and stress resilience.", price: "$94", discount: "Save 27%", images: ["/product2.svg", "/product4.svg", "/product1.svg"], color: "#fcdb59" },
-  "immunity": { name: "Immunity", description: "Stay strong and resilient with our Immunity patch, packed with essential vitamins and natural extracts.", price: "$94", discount: "Save 21%", images: ["/product3.svg", "/product2.svg", "/product4.svg"], color: "#ffffff" },
-  "nmn-nad": { name: "NMN/NAD+", description: "Our most advanced anti-aging formula. NMN/NAD+ patches deliver nicotinamide mononucleotide directly into your system.", price: "$94", discount: "Save 37%", images: ["/product4.svg", "/product6.svg", "/product1.svg"], color: "#ffffff" },
-  "muscle-fuel": { name: "Muscle Fuel", description: "Designed for athletes and fitness enthusiasts. Muscle Fuel patches deliver essential amino acids for faster recovery.", price: "$94", discount: "Save 27%", images: ["/product5.svg", "/product7.svg", "/product2.svg"], color: "#ffffff" },
-  "energy-release": { name: "Energy Release", description: "Sustained energy without the crash. Our Energy Release patch provides a steady stream of natural energy-boosting nutrients.", price: "$94", discount: "Save 21%", images: ["/product6.svg", "/product1.svg", "/product3.svg"], color: "#ffffff" },
-  "erectile-dysfunction": { name: "Erectile Dysfunction", description: "A discreet, prescription-grade transdermal solution for supporting male vitality and circulation.", price: "$94", discount: "Save 37%", images: ["/product7.svg", "/product5.svg", "/product2.svg"], color: "#ffffff" },
+  "collagen-formula": { name: "Collagen Formula", short_description: "Support your skin's natural elasticity.", description: "Support your skin's natural elasticity and glow with our Collagen Formula patch.", price: "$94", discount: "Save 27%", images: ["/product1.svg", "/product3.svg", "/product5.svg"], color: "#ffffff" },
+  "neuro-boost": { name: "Neuro Boost", short_description: "Powered by Lion's Mane.", description: "Powered by Lion's Mane, Ginkgo Biloba, and L-Theanine, this patch helps improve mental clarity, memory recall, and stress resilience.", price: "$94", discount: "Save 27%", images: ["/product2.svg", "/product4.svg", "/product1.svg"], color: "#fcdb59" },
+  "immunity": { name: "Immunity", short_description: "Stay strong and resilient.", description: "Stay strong and resilient with our Immunity patch, packed with essential vitamins and natural extracts.", price: "$94", discount: "Save 21%", images: ["/product3.svg", "/product2.svg", "/product4.svg"], color: "#ffffff" },
+  "nmn-nad": { name: "NMN/NAD+", short_description: "Advanced anti-aging.", description: "Our most advanced anti-aging formula. NMN/NAD+ patches deliver nicotinamide mononucleotide directly into your system.", price: "$94", discount: "Save 37%", images: ["/product4.svg", "/product6.svg", "/product1.svg"], color: "#ffffff" },
+  "muscle-fuel": { name: "Muscle Fuel", short_description: "Designed for athletes.", description: "Designed for athletes and fitness enthusiasts. Muscle Fuel patches deliver essential amino acids for faster recovery.", price: "$94", discount: "Save 27%", images: ["/product5.svg", "/product7.svg", "/product2.svg"], color: "#ffffff" },
+  "energy-release": { name: "Energy Release", short_description: "Sustained energy without the crash.", description: "Sustained energy without the crash. Our Energy Release patch provides a steady stream of natural energy-boosting nutrients.", price: "$94", discount: "Save 21%", images: ["/product6.svg", "/product1.svg", "/product3.svg"], color: "#ffffff" },
+  "erectile-dysfunction": { name: "Erectile Dysfunction", short_description: "A discreet, prescription-grade transdermal solution.", description: "A discreet, prescription-grade transdermal solution for supporting male vitality and circulation.", price: "$94", discount: "Save 37%", images: ["/product7.svg", "/product5.svg", "/product2.svg"], color: "#ffffff" },
 };
 
 function getFallback(slug: string) {
@@ -37,6 +37,9 @@ function getFallback(slug: string) {
     ingredients: "",
     usage_instructions: "",
     benefits: "",
+    splash_image_url: "",
+    splash_title: "",
+    splash_subtitle: "",
     variants: [] as Array<{ id: string; variant_name: string; price: number }>,
   };
 }
@@ -55,9 +58,11 @@ export default function ProductDetailPage() {
     { id: "immunity", product_id: "", name: "Immunity", price: "$94", image: "/product3.svg", bg: "bg-white" },
     { id: "nmn-nad", product_id: "", name: "NMN/NAD+", price: "$94", image: "/product4.svg", bg: "bg-white" },
   ]);
-  const [selectedImage, setSelectedImage] = useState(fallback.images[0]);
+  const [selectedImage, setSelectedImage] = useState(fallback.images[2] || fallback.images[0]);
   const [selectedPlan, setSelectedPlan] = useState("Single Patch (30-Day)");
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
+
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const { addItem } = useCart();
 
@@ -66,7 +71,7 @@ export default function ProductDetailPage() {
     // Reset to this slug's fallback immediately, then load from DB
     const fb = getFallback(slug);
     setProduct(fb);
-    setSelectedImage(fb.images[0]);
+    setSelectedImage(fb.images[2] || fb.images[0]);
     loadProduct();
     loadRelated();
   }, [slug]);
@@ -80,8 +85,17 @@ export default function ProductDetailPage() {
       const data: ProductWithRelations = await getProductBySlug(slug);
       clearTimeout(timeoutId);
 
-      const primaryImage = data.product_images?.find(img => img.is_primary) || data.product_images?.[0];
-      const images = data.product_images?.map(img => img.image_url) || ["/product1.svg"];
+      const sortedImgs = data.product_images?.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) || [];
+      if (sortedImgs.length === 0 && data.product_images?.length) {
+        // Fallback for old records without sort_order
+        sortedImgs.push(...data.product_images.slice().sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+      }
+      const imagesList = sortedImgs.map(img => img.image_url);
+      
+      const whiteImg = imagesList[0] || "/product1.svg";
+      const colorImg = imagesList[1] || whiteImg;
+      const previewImg = imagesList[2] || whiteImg;
+      const images = [whiteImg, colorImg, previewImg];
       const comparePrice = data.compare_at_price;
       const discount = comparePrice
         ? `Save ${Math.round(((comparePrice - data.base_price) / comparePrice) * 100)}%`
@@ -95,6 +109,7 @@ export default function ProductDetailPage() {
 
       setProduct({
         name: data.name,
+        short_description: data.short_description || "",
         description: data.description || "",
         price: `$${data.base_price}`,
         discount,
@@ -105,10 +120,13 @@ export default function ProductDetailPage() {
         ingredients: data.ingredients || "",
         usage_instructions: data.usage_instructions || "",
         benefits: data.benefits || "",
+        splash_image_url: (data as any).splash_image_url || "",
+        splash_title: (data as any).splash_title || "",
+        splash_subtitle: (data as any).splash_subtitle || "",
         variants,
       });
 
-      setSelectedImage(primaryImage?.image_url || images[0] || "/product1.svg");
+      setSelectedImage(previewImg);
       if (variants.length > 0) {
         setSelectedPlan(variants[0].variant_name);
       }
@@ -127,13 +145,17 @@ export default function ProductDetailPage() {
           .filter(p => p.slug !== slug)
           .slice(0, 4)
           .map(p => {
-            const img = p.product_images?.find(i => i.is_primary) || p.product_images?.[0];
+            const sortedImgs = p.product_images?.slice().sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) || [];
+            const pWhiteImg = sortedImgs[0]?.image_url || "/product1.svg";
+            const pColorImg = sortedImgs[1]?.image_url || pWhiteImg;
+
             return {
               id: p.slug,
               product_id: p.id,
               name: p.name,
               price: `$${p.base_price}`,
-              image: img?.image_url || "/product1.svg",
+              image: pWhiteImg,
+              hoverImage: pColorImg,
               bg: p.slug === "neuro-boost" ? "bg-gradient-to-b from-[#fcdb59] to-[#dcbe3c]" : "bg-white",
             };
           })
@@ -197,9 +219,20 @@ export default function ProductDetailPage() {
     {
       id: "ingredients", title: "Ingredients", content: product.ingredients ? (
         <ul className="flex flex-col gap-3 list-disc pl-5 text-[#4D4D4D]">
-          {product.ingredients.split(",").map((ingredient, idx) => (
-            <li key={idx}><strong className="text-[#4D4D4D]">{ingredient.trim()}</strong></li>
-          ))}
+          {product.ingredients.split("\n").filter(line => line.trim()).map((line, idx) => {
+            const colonIdx = line.indexOf(":");
+            if (colonIdx > -1) {
+              const name = line.slice(0, colonIdx).trim();
+              const detail = line.slice(colonIdx + 1).trim();
+              return (
+                <li key={idx}>
+                  <strong className="text-[#1a1a1a]">{name}</strong>
+                  {detail ? `: ${detail}` : ""}
+                </li>
+              );
+            }
+            return <li key={idx}><strong className="text-[#1a1a1a]">{line.trim()}</strong></li>;
+          })}
         </ul>
       ) : (
         <p className="text-[#4D4D4D]">Ingredients not listed.</p>
@@ -250,13 +283,13 @@ export default function ProductDetailPage() {
               <img
                 src={selectedImage}
                 alt={product.name}
-                className="w-full h-full object-cover transition-all duration-500 transform hover:scale-105"
+                className="w-full h-full object-cover transition-all duration-500 transform"
               />
             </div>
 
-            {/* Thumbnails */}
+            {/* Thumbnails (White BG & Color BG) */}
             <div className="absolute bottom-[20px] md:bottom-[30px] flex gap-[12px] md:gap-[20px] z-10 px-4">
-              {product.images.slice(0, 2).map((img, idx) => (
+              {[product.images[0], product.images[1]].filter(Boolean).map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(img)}
@@ -272,18 +305,27 @@ export default function ProductDetailPage() {
           <div className="flex-1 flex flex-col gap-[20px]">
             <div className="bg-white w-full lg:w-[561px] h-auto lg:min-h-[646px] rounded-[24px] p-8 md:p-[40px] shadow-sm relative flex flex-col">
               {/* Heart icon */}
-              <div className="absolute top-[20px] md:top-[30px] right-[20px] md:right-[30px] w-[32px] md:w-[40px] h-[32px] md:h-[40px] rounded-full bg-[#F5F5F5] flex items-center justify-center cursor-pointer hover:bg-[#eee] transition-colors">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.5" className="w-[20px] md:w-[24px] h-[20px] md:h-[24px]">
+              <button 
+                onClick={() => setIsFavorite(!isFavorite)}
+                className="absolute top-[20px] md:top-[30px] right-[20px] md:right-[30px] w-[32px] md:w-[40px] h-[32px] md:h-[40px] rounded-full bg-[#F5F5F5] flex items-center justify-center cursor-pointer hover:bg-[#eee] transition-colors z-20"
+              >
+                <svg 
+                  viewBox="0 0 24 24" 
+                  fill={isFavorite ? "#E11066" : "none"} 
+                  stroke={isFavorite ? "#E11066" : "#333"} 
+                  strokeWidth="1.5" 
+                  className="w-[20px] md:w-[24px] h-[20px] md:h-[24px] transition-colors duration-200"
+                >
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                 </svg>
-              </div>
+              </button>
 
               <h1 className="mt-6 md:mt-8 text-[#1a1a1a] text-[32px] md:text-[42px] font-['Satoshi:Bold',sans-serif] tracking-tight leading-tight capitalize">
                 {product.name}
               </h1>
 
               <p className="mt-4 text-[#666] text-[16px] font-['Satoshi:Regular',sans-serif] leading-relaxed">
-                {product.description}
+                {product.short_description || product.description}
               </p>
 
               <div className="my-[30px] md:my-[40px] flex items-baseline gap-4">
@@ -363,7 +405,11 @@ export default function ProductDetailPage() {
 
         <TestimonialsSection />
 
-        <VitaminsSplashSection />
+        <VitaminsSplashSection 
+          imageUrl={product.splash_image_url} 
+          title={product.splash_title} 
+          subtitle={product.splash_subtitle} 
+        />
 
         <SocialsSection />
         <NewsletterSection />

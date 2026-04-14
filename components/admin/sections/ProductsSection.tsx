@@ -1,86 +1,29 @@
 "use client";
 
-import { useState } from "react";
-
-type Variant = { name: string; sku: string; price: string; stock: number };
-type Product = {
-  id: number; name: string; sku: string; price: string; stock: number;
-  status: string; category: string; variants: Variant[]; sales: number; description: string;
-};
-
-const initialProducts: Product[] = [
-  {
-    id: 1, name: "Vitamin B12 Patch", sku: "IVP-B12-001", price: "AED 44", stock: 84,
-    status: "Active", category: "Vitamins", sales: 342,
-    description: "High-absorption B12 delivered transdermally for energy & brain health.",
-    variants: [
-      { name: "Single Patch", sku: "IVP-B12-001-S", price: "AED 44", stock: 40 },
-      { name: "Pack of 3", sku: "IVP-B12-001-P3", price: "AED 120", stock: 24 },
-      { name: "Pack of 6", sku: "IVP-B12-001-P6", price: "AED 220", stock: 20 },
-    ],
-  },
-  {
-    id: 2, name: "Energy Boost Bundle", sku: "IVP-ENR-002", price: "AED 142", stock: 42,
-    status: "Active", category: "Bundles", sales: 218,
-    description: "Wellness bundle combining B12, D3, and Energy patches for daily vitality.",
-    variants: [
-      { name: "Starter Bundle", sku: "IVP-ENR-002-ST", price: "AED 142", stock: 42 },
-    ],
-  },
-  {
-    id: 3, name: "Sleep & Recovery Patch", sku: "IVP-SLP-003", price: "AED 65", stock: 120,
-    status: "Active", category: "Recovery", sales: 197,
-    description: "Magnesium & melatonin patch for deep sleep and muscle recovery.",
-    variants: [
-      { name: "Single (30-day)", sku: "IVP-SLP-003-M", price: "AED 65", stock: 80 },
-      { name: "Pack of 2", sku: "IVP-SLP-003-P2", price: "AED 118", stock: 40 },
-    ],
-  },
-  {
-    id: 4, name: "Immunity Shield Pack", sku: "IVP-IMM-004", price: "AED 220", stock: 18,
-    status: "Active", category: "Immunity", sales: 156,
-    description: "4-in-1 immunity support combining Zinc, Vitamin C, D3, and elderberry.",
-    variants: [
-      { name: "Small (7-day)", sku: "IVP-IMM-004-SM", price: "AED 80", stock: 8 },
-      { name: "Medium (14-day)", sku: "IVP-IMM-004-MD", price: "AED 148", stock: 6 },
-      { name: "Large (30-day)", sku: "IVP-IMM-004-LG", price: "AED 220", stock: 4 },
-    ],
-  },
-  {
-    id: 5, name: "Vitamin D3 Patch", sku: "IVP-D3-005", price: "AED 49", stock: 0,
-    status: "Archived", category: "Vitamins", sales: 98,
-    description: "D3 + K2 combo patch for bone health and immune support.",
-    variants: [{ name: "Single Patch", sku: "IVP-D3-005-S", price: "AED 49", stock: 0 }],
-  },
-  {
-    id: 6, name: "Detox Cleanse Patch", sku: "IVP-DTX-006", price: "AED 82", stock: 200,
-    status: "Draft", category: "Wellness", sales: 0,
-    description: "Charcoal & ginger patch for gentle daily detox support.",
-    variants: [
-      { name: "Sensitive Formula", sku: "IVP-DTX-006-SF", price: "AED 82", stock: 100 },
-      { name: "Intensive Formula", sku: "IVP-DTX-006-IF", price: "AED 99", stock: 100 },
-    ],
-  },
-];
+import { useState, useEffect } from "react";
+import { getProducts, createProduct, updateProduct, deleteProduct, createVariant, updateVariant, deleteVariant, addProductImageUrl } from "@/lib/supabase/products";
+import { supabase } from "@/lib/supabase/client";
+import type { ProductWithRelations, ProductVariant } from "@/lib/supabase/types";
 
 const statusStyle: Record<string, { bg: string; color: string }> = {
-  Active: { bg: "#ecfdf5", color: "#059669" },
-  Draft: { bg: "#fffbeb", color: "#d97706" },
-  Archived: { bg: "#f4f6f8", color: "#888" },
+  active: { bg: "#ecfdf5", color: "#059669" },
+  draft: { bg: "#fffbeb", color: "#d97706" },
+  archived: { bg: "#f4f6f8", color: "#888" },
 };
 
 const productTabs = ["All Products", "Variants", "Bundles"];
 
-function VariantRow({ variant, onDelete }: { variant: Variant; onDelete: () => void }) {
+// Convert DB style to UI style
+function VariantRow({ variant, onUpdate, onDelete }: { variant: ProductVariant; onUpdate: (v: Partial<ProductVariant>) => void; onDelete: () => void }) {
   return (
     <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl" style={{ background: "#f9fafb", border: "1px solid #eaedf0" }}>
       <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <input defaultValue={variant.name} className="px-2 py-1 rounded-lg text-xs outline-none" style={{ background: "#fff", border: "1px solid #e5e7eb", color: "#1a1a1a", fontFamily: "Satoshi, sans-serif" }} />
-        <input defaultValue={variant.sku} className="px-2 py-1 rounded-lg text-xs font-mono outline-none" style={{ background: "#fff", border: "1px solid #e5e7eb", color: "#667eea" }} />
-        <input defaultValue={variant.price} className="px-2 py-1 rounded-lg text-xs outline-none" style={{ background: "#fff", border: "1px solid #e5e7eb", color: "#1a1a1a", fontFamily: "Satoshi, sans-serif" }} />
-        <input defaultValue={String(variant.stock)} className="px-2 py-1 rounded-lg text-xs outline-none" style={{ background: "#fff", border: "1px solid #e5e7eb", color: variant.stock < 10 ? "#dc2626" : "#1a1a1a", fontFamily: "Satoshi, sans-serif" }} />
+        <input value={variant.variant_name} onChange={e => onUpdate({ variant_name: e.target.value })} className="px-2 py-1 rounded-lg text-xs outline-none bg-white border border-[#e5e7eb] text-[#1a1a1a] font-['Satoshi']" />
+        <input value={variant.sku || ""} onChange={e => onUpdate({ sku: e.target.value })} className="px-2 py-1 rounded-lg text-xs font-mono outline-none bg-white border border-[#e5e7eb] text-[#667eea]" />
+        <input type="number" value={variant.price} onChange={e => onUpdate({ price: parseFloat(e.target.value) || 0 })} className="px-2 py-1 rounded-lg text-xs outline-none bg-white border border-[#e5e7eb] text-[#1a1a1a] font-['Satoshi']" />
+        <input type="number" value={variant.inventory_quantity} onChange={e => onUpdate({ inventory_quantity: parseInt(e.target.value) || 0 })} className="px-2 py-1 rounded-lg text-xs outline-none bg-white border border-[#e5e7eb] font-['Satoshi']" style={{ color: variant.inventory_quantity < 10 ? "#dc2626" : "#1a1a1a" }} />
       </div>
-      <button onClick={onDelete} className="p-1 rounded-lg shrink-0" style={{ background: "#fff1f1" }}>
+      <button onClick={onDelete} className="p-1 rounded-lg shrink-0 bg-[#fff1f1]">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#dc2626" className="w-3 h-3">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
         </svg>
@@ -92,74 +35,281 @@ function VariantRow({ variant, onDelete }: { variant: Variant; onDelete: () => v
 export default function ProductsSection() {
   const [activeTab, setActiveTab] = useState("All Products");
   const [search, setSearch] = useState("");
-  const [addModal, setAddModal] = useState(false);
-  const [editProduct, setEditProduct] = useState<Product | null>(null);
-  const [productList, setProductList] = useState<Product[]>(initialProducts);
-  const [newProduct, setNewProduct] = useState({ name: "", sku: "", price: "", stock: "", category: "", description: "" });
-  const [newVariants, setNewVariants] = useState<Variant[]>([{ name: "", sku: "", price: "", stock: 0 }]);
+  // Unified modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  const [productForm, setProductForm] = useState({ 
+    id: "", name: "", sku: "", price: "", compare_at_price: "", stock: "", status: "draft" as "active" | "draft" | "archived", 
+    short_description: "", description: "", ingredients: "",
+    splash_image_url: "", splash_title: "", splash_subtitle: "" 
+  });
+  const [variantForm, setVariantForm] = useState<{id?: string, name: string, sku: string, price: string, stock: number}[]>([{ name: "", sku: "", price: "", stock: 0 }]);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const [productList, setProductList] = useState<ProductWithRelations[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filtered = productList.filter(
-    (p) => p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase())
-  );
-  const lowStock = productList.filter((p) => p.stock > 0 && p.stock < 25);
-  const outOfStock = productList.filter((p) => p.stock === 0);
-  const bundles = productList.filter((p) => p.category === "Bundles");
+  // Image states: file objects for upload, strings for existing previews
+  const [imageFiles, setImageFiles] = useState<(File | null)[]>([null, null, null]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>(["", "", ""]);
+  const [existingImageIds, setExistingImageIds] = useState<string[]>(["", "", ""]);
+  const [splashFile, setSplashFile] = useState<File | null>(null);
 
-  const handleAdd = () => {
-    if (!newProduct.name || !newProduct.sku) return;
-    const product: Product = {
-      id: productList.length + 1,
-      name: newProduct.name,
-      sku: newProduct.sku,
-      price: `AED ${newProduct.price}`,
-      stock: parseInt(newProduct.stock) || 0,
-      status: "Draft",
-      category: newProduct.category || "General",
-      variants: newVariants.filter((v) => v.name),
-      sales: 0,
-      description: newProduct.description,
-    };
-    setProductList([product, ...productList]);
-    setNewProduct({ name: "", sku: "", price: "", stock: "", category: "", description: "" });
-    setNewVariants([{ name: "", sku: "", price: "", stock: 0 }]);
-    setAddModal(false);
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    try {
+      const { products } = await getProducts({ limit: 100, status: "" as any });
+      setProductList(products);
+    } catch (err) {
+      console.error("Failed fetching products", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const addVariant = () => setNewVariants([...newVariants, { name: "", sku: "", price: "", stock: 0 }]);
-  const removeVariant = (i: number) => setNewVariants(newVariants.filter((_, idx) => idx !== i));
+  useEffect(() => {
+    fetchProducts();
+    const forceUnlock = setTimeout(() => setIsLoading(false), 2000);
+    return () => clearTimeout(forceUnlock);
+  }, []);
+
+  const filtered = productList.filter(
+    (p) => p.name.toLowerCase().includes(search.toLowerCase()) || (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()))
+  );
+  
+  const lowStock = productList.filter((p) => p.total_inventory > 0 && p.total_inventory < 25);
+  const outOfStock = productList.filter((p) => p.total_inventory === 0);
+  // Add Variant inside Edit mode
+  const handleAddVariantToExisting = async () => {};
+  const saveVariantChanges = async () => {};
+  const handleDeleteVariantFromExisting = async (id: string) => {};
+  const editProduct = null;
+  // Unified Add / Edit
+  const handleSave = async () => {
+    if (!productForm.name) return alert("Product Name is required!");
+    setIsSaving(true);
+    try {
+      const baseSlug = productForm.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "");
+      const basePrice = parseFloat(productForm.price) || 0;
+      let productId = productForm.id;
+
+      // Auto-generate unique SKU if empty (format: IVP-XXXXX)
+      const autoSku = productForm.sku || `IVP-${Date.now().toString(36).toUpperCase().slice(-5)}`;
+
+      // For new products, append a short suffix to slug to guarantee uniqueness
+      const slug = modalMode === "add" ? `${baseSlug}-${Date.now().toString(36).slice(-4)}` : baseSlug;
+      
+      const payload = {
+        name: productForm.name,
+        slug,
+        sku: autoSku,
+        base_price: basePrice,
+        compare_at_price: parseFloat(productForm.compare_at_price) || undefined,
+        total_inventory: parseInt(productForm.stock) || 0,
+        status: productForm.status,
+        short_description: productForm.short_description,
+        description: productForm.description,
+        ingredients: productForm.ingredients,
+        featured: false,
+        ...( {
+          splash_image_url: productForm.splash_image_url,
+          splash_title: productForm.splash_title,
+          splash_subtitle: productForm.splash_subtitle,
+        } as any)
+      };
+
+      // Handle Splash Image Upload
+      if (splashFile) {
+        const fileExt = splashFile.name.split(".").pop();
+        const fileName = `splash_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(fileName, splashFile, { 
+            upsert: true,
+            contentType: splashFile.type || undefined
+          });
+        
+        if (uploadError) {
+          console.error("Splash upload error:", uploadError);
+        } else {
+          const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+          (payload as any).splash_image_url = publicUrl;
+        }
+      }
+
+      if (modalMode === "add") {
+        const created = await createProduct(payload);
+        productId = created.id;
+      } else {
+        await updateProduct(productId, payload);
+      }
+
+      // Upsert Variants
+      for (const v of variantForm.filter(x => x.name)) {
+        if (v.id) {
+          await updateVariant(v.id, {
+            variant_name: v.name,
+            sku: v.sku || undefined,
+            price: parseFloat(v.price) || basePrice,
+            inventory_quantity: v.stock
+          });
+        } else {
+          await createVariant({
+            product_id: productId,
+            variant_name: v.name,
+            sku: v.sku || undefined,
+            price: parseFloat(v.price) || basePrice,
+            inventory_quantity: v.stock
+          });
+        }
+      }
+
+      // Upload Images & preserve DB sort order
+      for (let i = 0; i < imageFiles.length; i++) {
+        const file = imageFiles[i];
+        if (file) {
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${productId}/${Date.now()}_${i}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage
+            .from("product-images")
+            .upload(fileName, file, { 
+              upsert: true,
+              contentType: file.type || undefined
+            });
+          
+          if (uploadError) {
+            console.error(`Image ${i} upload error:`, uploadError);
+          } else {
+            const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+            const oldId = existingImageIds[i];
+            
+            if (oldId) {
+               await supabase.from("product_images").update({ image_url: publicUrl, sort_order: i }).eq("id", oldId);
+            } else {
+               await supabase.from("product_images").insert({
+                 product_id: productId, image_url: publicUrl, alt_text: `Image ${i+1}`, is_primary: i === 0, sort_order: i
+               });
+            }
+          }
+        }
+      }
+
+      await fetchProducts();
+      closeModal();
+    } catch (err: any) {
+      console.error("Failed to save product", err);
+      const msg = (err.message || err.code || "").toLowerCase();
+      if (msg.includes("unique") || msg.includes("duplicate") || msg.includes("23505")) {
+        // Auto-retry with a completely fresh slug and SKU
+        try {
+          const retrySlug = `${productForm.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "")}-${Date.now().toString(36)}`;
+          const retrySku = `IVP-${Date.now().toString(36).toUpperCase()}`;
+          const created = await createProduct({
+            name: productForm.name,
+            slug: retrySlug,
+            sku: retrySku,
+            base_price: parseFloat(productForm.price) || 0,
+            compare_at_price: parseFloat(productForm.compare_at_price) || undefined,
+            total_inventory: parseInt(productForm.stock) || 0,
+            status: productForm.status,
+            short_description: productForm.short_description,
+            description: productForm.description,
+            ingredients: productForm.ingredients,
+            featured: false,
+          });
+          await fetchProducts();
+          closeModal();
+          return;
+        } catch (retryErr: any) {
+          alert(`Failed to save product: ${retryErr.message || "Unknown error"}`);
+        }
+      } else {
+        alert(`Failed to save product! ${err.message || ""}`);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openAddModal = () => {
+    setModalMode("add");
+    setProductForm({ id: "", name: "", sku: "", price: "", compare_at_price: "", stock: "", status: "draft", short_description: "", description: "", ingredients: "", splash_image_url: "", splash_title: "", splash_subtitle: "" });
+    setVariantForm([{ name: "", sku: "", price: "", stock: 0 }]);
+    setImageFiles([null, null, null]);
+    setImagePreviews(["", "", ""]);
+    setExistingImageIds(["", "", ""]);
+    setSplashFile(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (p: ProductWithRelations) => {
+    setModalMode("edit");
+    setProductForm({ 
+      id: p.id, name: p.name, sku: p.sku || "", price: p.base_price.toString(), compare_at_price: p.compare_at_price?.toString() || "", 
+      stock: p.total_inventory.toString(), status: p.status || "draft", 
+      short_description: (p as any).short_description || "", description: p.description || "", ingredients: p.ingredients || "", 
+      splash_image_url: (p as any).splash_image_url || "", splash_title: (p as any).splash_title || "", splash_subtitle: (p as any).splash_subtitle || "" 
+    });
+    setVariantForm(p.product_variants?.length > 0 ? p.product_variants.map(v => ({
+      id: v.id, name: v.variant_name, sku: v.sku || "", price: v.price.toString(), stock: v.inventory_quantity
+    })) : [{ name: "", sku: "", price: "", stock: 0 }]);
+    
+    // Existing DB images into preview (preserve ordering keys)
+    const existingImgs = ["", "", ""];
+    const existingIds = ["", "", ""];
+    if (p.product_images) {
+      const sorted = p.product_images.slice().sort((a,b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      if (sorted[0]) { existingImgs[0] = sorted[0].image_url; existingIds[0] = sorted[0].id; }
+      if (sorted[1]) { existingImgs[1] = sorted[1].image_url; existingIds[1] = sorted[1].id; }
+      if (sorted[2]) { existingImgs[2] = sorted[2].image_url; existingIds[2] = sorted[2].id; }
+    }
+    setImagePreviews(existingImgs);
+    setExistingImageIds(existingIds);
+    setImageFiles([null, null, null]);
+    setSplashFile(null);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => setIsModalOpen(false);
+
+  // Delete Product from DB
+  const handleDeleteProduct = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      await deleteProduct(id);
+      setProductList(productList.filter(p => p.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete product.");
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, newStatus: "active" | "draft" | "archived") => {
+    try {
+      await updateProduct(id, { status: newStatus });
+      setProductList(productList.map(p => p.id === id ? { ...p, status: newStatus } : p));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const addVariantToNew = () => {
+    const baseSku = productForm.sku || "SKU";
+    const nextIndex = variantForm.length + 1;
+    setVariantForm([...variantForm, { name: "", sku: `${baseSku}-V${nextIndex}`, price: productForm.price || "", stock: 0 }]);
+  };
+  const removeVariantFromNew = (i: number) => setVariantForm(variantForm.filter((_, idx) => idx !== i));
+
+  if (isLoading && productList.length === 0) {
+    return <div className="p-10 text-center text-gray-500 font-['Satoshi']">Loading products...</div>;
+  }
 
   return (
     <div className="space-y-5">
-      {/* Alerts */}
-      {(lowStock.length > 0 || outOfStock.length > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {lowStock.length > 0 && (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.6} stroke="#d97706" className="w-5 h-5 shrink-0">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-              </svg>
-              <span className="text-sm font-semibold text-[#92400e]" style={{ fontFamily: "Satoshi, sans-serif" }}>
-                {lowStock.length} product{lowStock.length > 1 ? "s" : ""} with low stock (&lt;25 units)
-              </span>
-            </div>
-          )}
-          {outOfStock.length > 0 && (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: "#fff1f1", border: "1px solid #fecaca" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.6} stroke="#dc2626" className="w-5 h-5 shrink-0">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
-              </svg>
-              <span className="text-sm font-semibold text-[#991b1b]" style={{ fontFamily: "Satoshi, sans-serif" }}>
-                {outOfStock.length} product{outOfStock.length > 1 ? "s" : ""} out of stock
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Tab Nav + Toolbar */}
-      <div className="rounded-2xl p-4" style={{ background: "#fff", border: "1px solid #eaedf0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+      <div className="rounded-2xl p-4 bg-white border border-[#eaedf0] shadow-sm">
         <div className="flex flex-wrap items-center gap-3 mb-4">
-          <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "#f4f6f8" }}>
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-[#f4f6f8]">
             {productTabs.map((t) => (
               <button
                 key={t}
@@ -173,274 +323,240 @@ export default function ProductsSection() {
                 }}
               >
                 {t}
-                {t === "Bundles" && <span className="ml-1.5 text-[9px] font-bold px-1 py-0.5 rounded-full" style={{ background: "#f0f0fe", color: "#667eea" }}>{bundles.length}</span>}
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-[200px]" style={{ background: "#f4f6f8", border: "1px solid #eaedf0" }}>
+          <div className="flex flex-1 items-center gap-2 px-3 py-2 rounded-xl min-w-[200px] bg-[#f4f6f8] border border-[#eaedf0]">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="#aaa" className="w-4 h-4 shrink-0">
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products or SKU..." className="flex-1 outline-none bg-transparent text-sm" style={{ color: "#333", fontFamily: "Satoshi, sans-serif" }} />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products or SKU..." className="flex-1 outline-none bg-transparent text-sm text-[#333] font-['Satoshi']" />
           </div>
 
-          <button className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold" style={{ background: "#f4f6f8", color: "#555", border: "1px solid #eaedf0", fontFamily: "Satoshi, sans-serif" }}>
-            📥 Import CSV
-          </button>
-          <button className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold" style={{ background: "#f4f6f8", color: "#555", border: "1px solid #eaedf0", fontFamily: "Satoshi, sans-serif" }}>
-            📤 Export CSV
-          </button>
           <button
-            onClick={() => setAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white ml-auto"
-            style={{ background: "#0f0f11", fontFamily: "Satoshi, sans-serif" }}
+            onClick={openAddModal}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white ml-auto bg-[#0f0f11] font-['Satoshi']"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Add Product
+            + Add Product
           </button>
         </div>
       </div>
 
-      {/* Add Product Modal */}
-      {addModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl rounded-2xl overflow-hidden" style={{ background: "#fff", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
-            <div className="flex items-center justify-between px-6 py-4 sticky top-0 bg-white" style={{ borderBottom: "1px solid #eaedf0" }}>
-              <h3 className="text-base font-bold text-[#0f0f11]" style={{ fontFamily: "Satoshi, sans-serif" }}>New Product</h3>
-              <button onClick={() => setAddModal(false)} className="p-1.5 rounded-lg" style={{ background: "#f4f6f8" }}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="#888" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
+      {/* UNIFIED MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f0f11]/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl bg-white rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 sticky top-0 bg-white border-b border-[#eaedf0] z-10">
+              <h3 className="text-lg font-bold text-[#0f0f11] font-['Satoshi']">{modalMode === "add" ? "Create New Product" : "Edit Product Details"}</h3>
+              <button onClick={closeModal} className="p-1.5 rounded-lg bg-[#f4f6f8] hover:bg-[#ebebeb] transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="#888" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="p-6 space-y-5">
+            
+            <div className="p-6 space-y-6">
               {/* Basic Info */}
-              <div>
-                <p className="text-xs font-bold text-[#555] mb-3 uppercase tracking-wider" style={{ fontFamily: "Satoshi, sans-serif" }}>Basic Info</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    { k: "name", l: "Product Name", p: "e.g. Magnesium Sleep Patch" },
-                    { k: "sku", l: "Base SKU", p: "e.g. IVP-MGN-007" },
-                    { k: "price", l: "Base Price (AED)", p: "e.g. 79" },
-                    { k: "stock", l: "Initial Stock", p: "e.g. 100" },
-                    { k: "category", l: "Category", p: "e.g. Wellness" },
-                  ].map((f) => (
-                    <div key={f.k}>
-                      <label className="block text-xs font-semibold text-[#555] mb-1" style={{ fontFamily: "Satoshi, sans-serif" }}>{f.l}</label>
-                      <input
-                        value={newProduct[f.k as keyof typeof newProduct]}
-                        onChange={(e) => setNewProduct({ ...newProduct, [f.k]: e.target.value })}
-                        placeholder={f.p}
-                        className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                        style={{ background: "#f7f7f7", border: "1.5px solid #ebebeb", color: "#1a1a1a", fontFamily: "Satoshi, sans-serif" }}
-                        onFocus={(e) => (e.target.style.borderColor = "#1a1a1a")}
-                        onBlur={(e) => (e.target.style.borderColor = "#ebebeb")}
-                      />
-                    </div>
-                  ))}
+              <div className="bg-[#fcfdfd] border border-[#eaedf0] p-4 rounded-xl">
+                <p className="text-xs font-bold text-[#0f0f11] mb-3 uppercase tracking-wider font-['Satoshi'] border-b pb-2">Core Identity</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#555] mb-1" style={{ fontFamily: "Satoshi, sans-serif" }}>Status</label>
-                    <select className="w-full px-3 py-2 rounded-xl text-sm outline-none" style={{ background: "#f7f7f7", border: "1.5px solid #ebebeb", color: "#1a1a1a", fontFamily: "Satoshi, sans-serif" }}>
-                      <option>Draft</option>
-                      <option>Active</option>
+                    <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Product Name</label>
+                    <input value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} placeholder="e.g. Muscle Fuel Patch" className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Base SKU</label>
+                    <input value={productForm.sku} onChange={e => setProductForm({...productForm, sku: e.target.value})} placeholder="e.g. MSCL-FL-01" className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Base Price (AED)</label>
+                    <input type="number" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} placeholder="e.g. 94" className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Compare At Price (Discount)</label>
+                    <input type="number" value={productForm.compare_at_price} onChange={e => setProductForm({...productForm, compare_at_price: e.target.value})} placeholder="Optional retail price. e.g. 129" className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Total Inventory</label>
+                    <input type="number" value={productForm.stock} onChange={e => setProductForm({...productForm, stock: e.target.value})} className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Status</label>
+                    <select value={productForm.status} onChange={e => setProductForm({...productForm, status: e.target.value as any})} className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]">
+                      <option value="draft">Draft</option>
+                      <option value="active">Active</option>
+                      <option value="archived">Archived</option>
                     </select>
                   </div>
                 </div>
-                <div className="mt-3">
-                  <label className="block text-xs font-semibold text-[#555] mb-1" style={{ fontFamily: "Satoshi, sans-serif" }}>Description</label>
-                  <textarea
-                    value={newProduct.description}
-                    onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                    rows={3} placeholder="Product description for Meta catalog, website, and SEO..."
-                    className="w-full px-3 py-2 rounded-xl text-sm outline-none resize-none"
-                    style={{ background: "#f7f7f7", border: "1.5px solid #ebebeb", color: "#1a1a1a", fontFamily: "Satoshi, sans-serif" }}
-                    onFocus={(e) => (e.target.style.borderColor = "#1a1a1a")}
-                    onBlur={(e) => (e.target.style.borderColor = "#ebebeb")}
-                  />
+              </div>
+
+              {/* Descriptions */}
+              <div className="bg-[#fcfdfd] border border-[#eaedf0] p-4 rounded-xl space-y-4">
+                <p className="text-xs font-bold text-[#0f0f11] uppercase tracking-wider font-['Satoshi'] border-b pb-2">Copywriting</p>
+                <div>
+                  <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Short Description (About the product)</label>
+                  <textarea value={productForm.short_description} onChange={e => setProductForm({...productForm, short_description: e.target.value})} placeholder="Brief hook, e.g. Designed for athletes and fitness enthusiasts..." rows={2} className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Long Description (Dropdown)</label>
+                  <textarea value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} placeholder="Full details to display in the Description accordion..." rows={3} className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Ingredients (One per line — <span className="text-[#667eea]">Name: Detail</span>)</label>
+                  <textarea value={productForm.ingredients} onChange={e => setProductForm({...productForm, ingredients: e.target.value})} placeholder={"Vitamin B12: Supports energy metabolism and reduces fatigue\nIron: Essential mineral for oxygen transport in blood\nMagnesium: Helps with muscle recovery and relaxation"} rows={5} className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
                 </div>
               </div>
 
-              {/* Variants */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-bold text-[#555] uppercase tracking-wider" style={{ fontFamily: "Satoshi, sans-serif" }}>Variants / Options</p>
-                  <button onClick={addVariant} className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#667eea", fontFamily: "Satoshi, sans-serif" }}>
-                    + Add Variant
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2 px-3">
-                  {["Variant Name", "SKU", "Price (AED)", "Stock"].map((h) => (
-                    <span key={h} className="text-[10px] font-bold text-[#888] uppercase" style={{ fontFamily: "Satoshi, sans-serif" }}>{h}</span>
+              {/* Upload Files */}
+              <div className="bg-[#fcfdfd] border border-[#eaedf0] p-4 rounded-xl">
+                <p className="text-xs font-bold text-[#0f0f11] mb-3 uppercase tracking-wider font-['Satoshi'] border-b pb-2">Images Upload (Optional)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {["Primary (White BG)", "Secondary (Color BG)", "Preview/Action"].map((label, i) => (
+                    <div key={label} className="bg-white p-3 rounded-lg border border-dashed border-[#ccc] text-center">
+                      <label className="block text-[10px] font-semibold text-[#555] mb-3 font-['Satoshi']">{label}</label>
+                      {imagePreviews[i] && !imageFiles[i] ? (
+                        <div className="flex flex-col items-center">
+                           <img src={imagePreviews[i]} alt="Preview" className="w-16 h-16 object-cover mb-2 rounded-md" />
+                           <span className="text-[9px] text-[#888] font-mono truncate w-full">Current Image</span>
+                        </div>
+                      ) : null}
+                      <input type="file" accept="image/*" onChange={e => {
+                        const file = e.target.files?.[0] || null;
+                        const upd = [...imageFiles]; upd[i] = file; setImageFiles(upd);
+                      }} className="w-full text-[10px] text-[#555] file:text-[10px] file:border-0 file:bg-[#f4f6f8] file:rounded file:px-2 file:py-1 file:font-semibold" />
+                    </div>
                   ))}
                 </div>
-                <div className="space-y-2">
-                  {newVariants.map((v, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {[
-                          { k: "name", p: "e.g. Pack of 3" },
-                          { k: "sku", p: "e.g. IVP-001-P3" },
-                          { k: "price", p: "e.g. 120" },
-                          { k: "stock", p: "e.g. 50" },
-                        ].map((f) => (
-                          <input
-                            key={f.k}
-                            value={f.k === "stock" ? String(v[f.k]) : v[f.k as "name" | "sku" | "price"]}
-                            onChange={(e) => {
-                              const updated = [...newVariants];
-                              (updated[i] as Record<string, string | number>)[f.k] = f.k === "stock" ? parseInt(e.target.value) || 0 : e.target.value;
-                              setNewVariants(updated);
-                            }}
-                            placeholder={f.p}
-                            className="px-2 py-2 rounded-lg text-xs outline-none"
-                            style={{ background: "#f7f7f7", border: "1px solid #ebebeb", color: "#1a1a1a", fontFamily: f.k === "sku" ? "monospace" : "Satoshi, sans-serif" }}
-                          />
-                        ))}
+              </div>
+
+              {/* Splash */}
+              <div className="bg-[#fcfdfd] border border-[#eaedf0] p-4 rounded-xl">
+                <p className="text-xs font-bold text-[#0f0f11] mb-3 uppercase tracking-wider font-['Satoshi'] border-b pb-2">Splash Page Banner</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Splash Image Upload</label>
+                    {productForm.splash_image_url && !splashFile && (
+                       <p className="text-[10px] text-green-600 mb-1 font-['Satoshi']">Current image exists in system.</p>
+                    )}
+                    <input type="file" accept="image/*" onChange={e => setSplashFile(e.target.files?.[0] || null)} className="w-full text-xs text-[#555] file:border-0 file:bg-[#f4f6f8] file:rounded file:px-3 file:py-1.5 file:font-semibold" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Splash Title</label>
+                    <input value={productForm.splash_title} onChange={e => setProductForm({...productForm, splash_title: e.target.value})} placeholder="e.g. Muscle Relief" className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
+                  </div>
+                </div>
+                <label className="block text-xs font-semibold text-[#555] mb-1 font-['Satoshi']">Splash Subtitle Snippet</label>
+                <textarea value={productForm.splash_subtitle} onChange={e => setProductForm({...productForm, splash_subtitle: e.target.value})} placeholder="e.g. Crafted to ease tension..." rows={2} className="w-full px-3 py-2 rounded-xl text-sm border border-[#eaedf0] bg-white font-['Satoshi'] outline-none focus:border-[#1a1a1a]" />
+              </div>
+
+              {/* Variants */}
+              <div className="bg-[#fcfdfd] border border-[#eaedf0] p-4 rounded-xl">
+                <div className="flex items-center justify-between mb-3 border-b pb-2">
+                  <p className="text-xs font-bold text-[#0f0f11] uppercase tracking-wider font-['Satoshi']">Variants Engine</p>
+                  <button onClick={addVariantToNew} className="flex items-center gap-1 text-xs font-bold text-[#0f0f11] font-['Satoshi'] bg-[#eaedf0] px-3 py-1 rounded-full hover:bg-[#e0e3e6] transition">+ Add Variant</button>
+                </div>
+                <div className="space-y-3">
+                  {variantForm.map((v, i) => (
+                    <div key={i} className="flex flex-col sm:flex-row items-center gap-2 p-2 bg-white border border-[#eaedf0] rounded-xl shadow-sm">
+                      <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-2 w-full">
+                        <input value={v.name} onChange={e => { const up = [...variantForm]; up[i].name = e.target.value; setVariantForm(up); }} placeholder="Variant Name" className="px-3 py-1.5 rounded-lg text-xs bg-[#fdfdfd] border border-[#eaedf0] font-['Satoshi'] outline-none" />
+                        <input value={v.sku} onChange={e => { const up = [...variantForm]; up[i].sku = e.target.value; setVariantForm(up); }} placeholder="SKU" className="px-3 py-1.5 rounded-lg text-xs bg-[#fdfdfd] border border-[#eaedf0] font-mono outline-none" />
+                        <input type="number" value={v.price} onChange={e => { const up = [...variantForm]; up[i].price = e.target.value; setVariantForm(up); }} placeholder="Price AED" className="px-3 py-1.5 rounded-lg text-xs bg-[#fdfdfd] border border-[#eaedf0] font-['Satoshi'] outline-none" />
+                        <input type="number" value={v.stock} onChange={e => { const up = [...variantForm]; up[i].stock = parseInt(e.target.value)||0; setVariantForm(up); }} placeholder="Stock" className="px-3 py-1.5 rounded-lg text-xs bg-[#fdfdfd] border border-[#eaedf0] font-['Satoshi'] outline-none" />
                       </div>
-                      <button onClick={() => removeVariant(i)} className="p-1.5 rounded-lg shrink-0" style={{ background: "#fff1f1" }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#dc2626" className="w-3.5 h-3.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
+                      <button onClick={() => removeVariantFromNew(i)} className="p-2 lg:p-1.5 rounded-lg shrink-0 bg-[#fff1f1] hover:bg-[#fee2e2] transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#dc2626" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                       </button>
                     </div>
                   ))}
                 </div>
               </div>
-
-              {/* Image Upload */}
-              <div>
-                <p className="text-xs font-bold text-[#555] mb-3 uppercase tracking-wider" style={{ fontFamily: "Satoshi, sans-serif" }}>Product Images</p>
-                <div className="border-2 border-dashed rounded-xl p-6 flex flex-col items-center gap-2 cursor-pointer" style={{ borderColor: "#c7d2fe", background: "#f8f7ff" }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.4} stroke="#667eea" className="w-8 h-8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                  </svg>
-                  <p className="text-sm font-semibold text-[#1a1a1a]" style={{ fontFamily: "Satoshi, sans-serif" }}>Drop images or click to upload</p>
-                  <p className="text-xs text-[#aaa]" style={{ fontFamily: "Satoshi, sans-serif" }}>PNG, JPG, WebP up to 10MB · First image = primary</p>
-                  <button className="px-4 py-1.5 rounded-xl text-xs font-bold text-white" style={{ background: "#667eea" }}>Browse</button>
-                </div>
-              </div>
             </div>
-            <div className="flex gap-3 px-6 pb-6">
-              <button onClick={() => setAddModal(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={{ background: "#f4f6f8", color: "#555", fontFamily: "Satoshi, sans-serif" }}>Cancel</button>
-              <button onClick={handleAdd} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "#0f0f11", fontFamily: "Satoshi, sans-serif" }}>Save Product</button>
+            
+            <div className="flex gap-3 px-6 pb-6 bg-white sticky bottom-0 pt-4 border-t border-[#eaedf0]">
+              <button onClick={closeModal} disabled={isSaving} className="flex-1 py-3 rounded-xl text-sm font-bold bg-[#f4f6f8] text-[#555] font-['Satoshi'] hover:bg-[#eaedf0] transition disabled:opacity-50">Discard</button>
+              <button onClick={handleSave} disabled={isSaving} className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-[#0f0f11] font-['Satoshi'] hover:bg-[#1a1a1a] shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2">
+                {isSaving ? "Saving..." : (modalMode === 'add' ? 'Publish Product' : 'Save Changes')}
+              </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Variants Panel */}
-      {editProduct && (
-        <div className="rounded-2xl p-6" style={{ background: "#fff", border: "1px solid #667eea", boxShadow: "0 4px 16px rgba(102,126,234,0.1)" }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-[#0f0f11]" style={{ fontFamily: "Satoshi, sans-serif" }}>
-                Editing variants for: {editProduct.name}
-              </h3>
-              <p className="text-xs text-[#888]" style={{ fontFamily: "Satoshi, sans-serif" }}>All inventory counts update in real-time</p>
-            </div>
-            <button onClick={() => setEditProduct(null)} className="p-1.5 rounded-lg" style={{ background: "#f4f6f8" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="#888" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="grid grid-cols-4 gap-2 mb-2 px-3">
-            {["Variant Name", "SKU", "Price", "Stock"].map((h) => (
-              <span key={h} className="text-[10px] font-bold text-[#888] uppercase" style={{ fontFamily: "Satoshi, sans-serif" }}>{h}</span>
-            ))}
-          </div>
-          <div className="space-y-2 mb-3">
-            {editProduct.variants.map((v, i) => (
-              <VariantRow key={i} variant={v} onDelete={() => {
-                const updated = { ...editProduct, variants: editProduct.variants.filter((_, idx) => idx !== i) };
-                setEditProduct(updated);
-                setProductList(productList.map((p) => p.id === updated.id ? updated : p));
-              }} />
-            ))}
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                const updated = { ...editProduct, variants: [...editProduct.variants, { name: "New Variant", sku: `${editProduct.sku}-NEW`, price: editProduct.price, stock: 0 }] };
-                setEditProduct(updated);
-                setProductList(productList.map((p) => p.id === updated.id ? updated : p));
-              }}
-              className="px-4 py-2 rounded-xl text-xs font-bold"
-              style={{ background: "#f0f0fe", color: "#667eea", fontFamily: "Satoshi, sans-serif" }}
-            >
-              + Add Variant
-            </button>
-            <button className="px-4 py-2 rounded-xl text-xs font-bold text-white" style={{ background: "#0f0f11", fontFamily: "Satoshi, sans-serif" }}>Save Changes</button>
           </div>
         </div>
       )}
 
       {/* ALL PRODUCTS TAB */}
       {activeTab === "All Products" && (
-        <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid #eaedf0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+        <div className="rounded-2xl overflow-hidden bg-white border border-[#eaedf0] shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ background: "#f9fafb", borderBottom: "1px solid #eaedf0" }}>
-                  {["Product", "SKU", "Category", "Price", "Stock", "Variants", "Sales", "Status", "Actions"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-[#888] uppercase tracking-wider whitespace-nowrap" style={{ fontFamily: "Satoshi, sans-serif" }}>{h}</th>
+                <tr className="bg-[#f9fafb] border-b border-[#eaedf0]">
+                  {["Product", "SKU", "Price", "Stock", "Variants", "Status", "Actions"].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-[#888] uppercase tracking-wider whitespace-nowrap font-['Satoshi']">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y" style={{ borderColor: "#f4f6f8" }}>
-                {filtered.map((p) => (
-                  <tr key={p.id} className="hover:bg-[#f9fafb] transition-colors">
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg, #667eea, #764ba2)" }}>IV</div>
-                        <div>
-                          <div className="text-sm font-semibold text-[#1a1a1a]" style={{ fontFamily: "Satoshi, sans-serif" }}>{p.name}</div>
-                          <div className="text-[10px] text-[#aaa] line-clamp-1" style={{ fontFamily: "Satoshi, sans-serif", maxWidth: 160 }}>{p.description}</div>
+              <tbody className="divide-y border-[#f4f6f8]">
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-10 text-center">
+                        <div className="flex flex-col items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#d1d5db" className="w-12 h-12 mb-3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                          </svg>
+                          <p className="text-sm font-semibold text-[#555] font-['Satoshi']">No products found</p>
+                          <p className="text-xs text-[#aaa] font-['Satoshi'] mt-1">Your inventory is currently empty.</p>
+                          <button onClick={openAddModal} className="mt-4 px-4 py-2 bg-[#0f0f11] text-white rounded-xl text-xs font-bold font-['Satoshi']">+ Add First Product</button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5 text-xs font-mono text-[#667eea]">{p.sku}</td>
-                    <td className="px-4 py-3.5 text-xs text-[#888]" style={{ fontFamily: "Satoshi, sans-serif" }}>{p.category}</td>
-                    <td className="px-4 py-3.5 text-sm font-bold text-[#1a1a1a]" style={{ fontFamily: "Satoshi, sans-serif" }}>{p.price}</td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-sm font-bold" style={{ color: p.stock === 0 ? "#dc2626" : p.stock < 25 ? "#d97706" : "#059669", fontFamily: "Satoshi, sans-serif" }}>
-                        {p.stock}
-                      </span>
-                      {p.stock > 0 && p.stock < 25 && <span className="text-[10px] text-[#d97706] ml-1">⚠</span>}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <button
-                        onClick={() => setEditProduct(editProduct?.id === p.id ? null : p)}
-                        className="text-xs font-semibold px-2 py-1 rounded-lg transition-all"
-                        style={{ background: editProduct?.id === p.id ? "#f0f0fe" : "#f4f6f8", color: editProduct?.id === p.id ? "#667eea" : "#555", fontFamily: "Satoshi, sans-serif" }}
-                      >
-                        {p.variants.length} variant{p.variants.length !== 1 ? "s" : ""}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3.5 text-sm text-[#555]" style={{ fontFamily: "Satoshi, sans-serif" }}>{p.sales}</td>
-                    <td className="px-4 py-3.5">
-                      <select
-                        className="text-[10px] font-bold px-2 py-1 rounded-full outline-none cursor-pointer"
-                        style={statusStyle[p.status]}
-                        onChange={(e) => setProductList(productList.map((prod) => prod.id === p.id ? { ...prod, status: e.target.value } : prod))}
-                        value={p.status}
-                      >
-                        <option>Active</option>
-                        <option>Draft</option>
-                        <option>Archived</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-1.5">
-                        <button onClick={() => setEditProduct(p)} className="px-2 py-1 rounded-lg text-xs font-semibold" style={{ background: "#f4f6f8", color: "#555", fontFamily: "Satoshi, sans-serif" }}>Edit</button>
-                        <button onClick={() => setProductList(productList.filter((prod) => prod.id !== p.id))} className="px-2 py-1 rounded-lg text-xs font-semibold" style={{ background: "#fff1f1", color: "#dc2626", fontFamily: "Satoshi, sans-serif" }}>Del</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((p) => (
+                      <tr key={p.id} className="hover:bg-[#f9fafb] transition-colors">
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg, #667eea, #764ba2)" }}>IV</div>
+                            <div>
+                              <div className="text-sm font-semibold text-[#1a1a1a] font-['Satoshi']">{p.name}</div>
+                              <div className="text-[10px] text-[#aaa] line-clamp-1 max-w-[160px] font-['Satoshi']">{p.description}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs font-mono text-[#667eea]">{p.sku || "-"}</td>
+                        <td className="px-4 py-3.5 text-sm font-bold text-[#1a1a1a] font-['Satoshi']">AED {p.base_price}</td>
+                        <td className="px-4 py-3.5">
+                          <span className="text-sm font-bold font-['Satoshi']" style={{ color: p.total_inventory === 0 ? "#dc2626" : p.total_inventory < 25 ? "#d97706" : "#059669" }}>
+                            {p.total_inventory}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <button
+                            onClick={() => openEditModal(p)}
+                            className="text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all font-['Satoshi'] bg-[#f4f6f8] text-[#555] hover:bg-[#ebebeb]"
+                          >
+                            {p.product_variants?.length || 0} variant{(p.product_variants?.length || 0) !== 1 ? "s" : ""}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <select
+                            className="text-[10px] font-bold px-2 py-1 rounded-full outline-none cursor-pointer"
+                            style={statusStyle[p.status || "draft"]}
+                            onChange={(e) => handleUpdateStatus(p.id, e.target.value as any)}
+                            value={p.status}
+                          >
+                            <option value="active">Active</option>
+                            <option value="draft">Draft</option>
+                            <option value="archived">Archived</option>
+                          </select>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-1.5">
+                            <button onClick={() => openEditModal(p)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#f4f6f8] text-[#1a1a1a] hover:bg-[#ebebeb] transition font-['Satoshi']">Edit Details</button>
+                            <button onClick={() => handleDeleteProduct(p.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#fff1f1] text-[#dc2626] hover:bg-[#fee2e2] transition font-['Satoshi']">Del</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
               </tbody>
             </table>
           </div>
@@ -449,25 +565,22 @@ export default function ProductsSection() {
 
       {/* VARIANTS TAB */}
       {activeTab === "Variants" && (
-        <div className="rounded-2xl" style={{ background: "#fff", border: "1px solid #eaedf0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-          <div className="px-6 py-4" style={{ borderBottom: "1px solid #eaedf0" }}>
-            <h3 className="text-sm font-bold text-[#0f0f11]" style={{ fontFamily: "Satoshi, sans-serif" }}>All Variants Across Products</h3>
-            <p className="text-xs text-[#aaa] mt-0.5" style={{ fontFamily: "Satoshi, sans-serif" }}>
-              Total: {productList.reduce((acc, p) => acc + p.variants.length, 0)} variants · {productList.reduce((acc, p) => acc + p.variants.filter(v => v.stock === 0).length, 0)} out of stock
-            </p>
+        <div className="rounded-2xl bg-white border border-[#eaedf0] shadow-sm">
+          <div className="px-6 py-4 border-b border-[#eaedf0]">
+            <h3 className="text-sm font-bold text-[#0f0f11] font-['Satoshi']">All Variants Across Products</h3>
           </div>
-          <div className="divide-y" style={{ borderColor: "#f4f6f8" }}>
+          <div className="divide-y border-[#f4f6f8]">
             {productList.map((p) =>
-              p.variants.map((v) => (
-                <div key={v.sku} className="flex items-center gap-4 px-6 py-3 hover:bg-[#f9fafb] transition-colors">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: p.status === "Active" ? "#10b981" : "#d1d5db" }} />
+              p.product_variants?.map((v) => (
+                <div key={v.id} className="flex items-center gap-4 px-6 py-3 hover:bg-[#f9fafb] transition-colors">
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: p.status === "active" ? "#10b981" : "#d1d5db" }} />
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs text-[#aaa] mr-2" style={{ fontFamily: "Satoshi, sans-serif" }}>{p.name}</span>
-                    <span className="text-sm font-semibold text-[#1a1a1a]" style={{ fontFamily: "Satoshi, sans-serif" }}>{v.name}</span>
+                    <span className="text-xs text-[#aaa] mr-2 font-['Satoshi']">{p.name}</span>
+                    <span className="text-sm font-semibold text-[#1a1a1a] font-['Satoshi']">{v.variant_name}</span>
                   </div>
                   <span className="text-xs font-mono text-[#667eea]">{v.sku}</span>
-                  <span className="text-sm font-bold text-[#1a1a1a]" style={{ fontFamily: "Satoshi, sans-serif" }}>{v.price}</span>
-                  <span className="text-sm font-bold" style={{ color: v.stock === 0 ? "#dc2626" : v.stock < 10 ? "#d97706" : "#059669", fontFamily: "Satoshi, sans-serif" }}>{v.stock} units</span>
+                  <span className="text-sm font-bold text-[#1a1a1a] font-['Satoshi']">AED {v.price}</span>
+                  <span className="text-sm font-bold font-['Satoshi']" style={{ color: v.inventory_quantity === 0 ? "#dc2626" : v.inventory_quantity < 10 ? "#d97706" : "#059669" }}>{v.inventory_quantity} units</span>
                 </div>
               ))
             )}
@@ -478,62 +591,9 @@ export default function ProductsSection() {
       {/* BUNDLES TAB */}
       {activeTab === "Bundles" && (
         <div className="space-y-4">
-          <div className="rounded-2xl p-6" style={{ background: "#fff", border: "1px solid #eaedf0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-sm font-bold text-[#0f0f11]" style={{ fontFamily: "Satoshi, sans-serif" }}>Bundle / Kit Configuration</h3>
-                <p className="text-xs text-[#aaa] mt-0.5" style={{ fontFamily: "Satoshi, sans-serif" }}>Build multi-product kits with combined pricing</p>
-              </div>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white" style={{ background: "#0f0f11", fontFamily: "Satoshi, sans-serif" }}>+ Create Bundle</button>
-            </div>
-            <div className="space-y-4">
-              {bundles.map((bundle) => (
-                <div key={bundle.id} className="p-5 rounded-xl" style={{ background: "#f9fafb", border: "1px solid #eaedf0" }}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <p className="text-sm font-bold text-[#1a1a1a]" style={{ fontFamily: "Satoshi, sans-serif" }}>{bundle.name}</p>
-                      <p className="text-xs text-[#888]" style={{ fontFamily: "Satoshi, sans-serif" }}>{bundle.description}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-bold text-[#667eea]" style={{ fontFamily: "Satoshi, sans-serif" }}>{bundle.price}</div>
-                      <div className="text-[10px] text-[#aaa]">{bundle.stock} in stock</div>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {["Vitamin B12 Patch ×1", "Vitamin D3 Patch ×1", "Sleep Patch ×1"].map((item) => (
-                      <span key={item} className="text-[10px] font-semibold px-2 py-1 rounded-lg" style={{ background: "#e8eaf6", color: "#667eea" }}>{item}</span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* New Bundle Builder */}
-            <div className="mt-5 p-5 rounded-xl" style={{ background: "#f0f0fe", border: "2px dashed #c7d2fe" }}>
-              <p className="text-xs font-bold text-[#667eea] mb-3" style={{ fontFamily: "Satoshi, sans-serif" }}>+ Quick Bundle Builder</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                <div>
-                  <label className="block text-[10px] font-semibold text-[#667eea] mb-1">Bundle Name</label>
-                  <input placeholder="e.g. Immunity + Sleep Bundle" className="w-full px-3 py-2 rounded-xl text-xs outline-none" style={{ background: "#fff", border: "1.5px solid #c7d2fe", color: "#1a1a1a", fontFamily: "Satoshi, sans-serif" }} />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-semibold text-[#667eea] mb-1">Bundle Price (AED)</label>
-                  <input placeholder="e.g. 189" className="w-full px-3 py-2 rounded-xl text-xs outline-none" style={{ background: "#fff", border: "1.5px solid #c7d2fe", color: "#1a1a1a", fontFamily: "Satoshi, sans-serif" }} />
-                </div>
-              </div>
-              <div className="mb-3">
-                <label className="block text-[10px] font-semibold text-[#667eea] mb-1">Select Products</label>
-                <div className="flex flex-wrap gap-2">
-                  {productList.filter(p => p.status === "Active").map((p) => (
-                    <label key={p.id} className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-[10px]" style={{ fontFamily: "Satoshi, sans-serif", color: "#667eea" }}>{p.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <button className="px-4 py-2 rounded-xl text-xs font-bold text-white" style={{ background: "#667eea", fontFamily: "Satoshi, sans-serif" }}>Create Bundle</button>
-            </div>
+          <div className="rounded-2xl p-6 bg-white border border-[#eaedf0] shadow-sm">
+            <h3 className="text-sm font-bold text-[#0f0f11] mb-2 font-['Satoshi']">Bundles (Coming soon)</h3>
+            <p className="text-xs text-[#888] font-['Satoshi']">Complex multi-product bundles require advanced database relations. Feature in development.</p>
           </div>
         </div>
       )}

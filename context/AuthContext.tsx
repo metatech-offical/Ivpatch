@@ -1,8 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { getSupabaseClient } from "@/lib/supabase/client";
-import type { Profile } from "@/lib/supabase/types";
+import React, { createContext, useContext, useState, useCallback } from "react";
 
 type User = {
   id: string;
@@ -14,240 +12,118 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
-  login: (email: string, password: string) => Promise<User | null>;
-  register: (data: {
+  loginWithPhone: (phone: string) => void;
+  loginAdmin: (email: string, password: string) => boolean;
+  registerUser: (data: {
+    phone: string;
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
-    password: string;
-  }) => Promise<User | null>;
-  logout: () => Promise<void>;
+    gender: string;
+  }) => void;
+  logout: () => void;
   isLoggedIn: boolean;
   isLoading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function profileToUser(profile: Profile): User {
-  return {
-    id: profile.id,
-    name: [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email,
-    email: profile.email,
-    phone: profile.phone || "",
-    role: profile.role as "customer" | "admin",
-  };
-}
-
-// Helper: wrap a promise with a timeout so it never hangs forever
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
-  return Promise.race([
-    promise,
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
-  ]);
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading] = useState(false);
 
-  const supabase = getSupabaseClient();
-
-  // Fetch profile from Supabase profiles table
-  const fetchProfile = useCallback(async (userId: string): Promise<User | null> => {
-    try {
-      const query = new Promise<{ data: any, error: any }>((resolve) => {
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .single()
-          .then(resolve);
-      });
-      
-      const result = await withTimeout(query, 5000);
-      if (!result) {
-        return null;
-      }
-
-      const { data, error } = result;
-      if (error || !data) return null;
-      return profileToUser(data as Profile);
-    } catch {
-      return null;
-    }
-  }, [supabase]);
-
-  // Check session on mount — with timeout protection
-  useEffect(() => {
-    let mounted = true;
-
-    const initAuth = async () => {
-      try {
-        const result = await withTimeout(supabase.auth.getSession(), 4000);
-
-        if (!mounted) return;
-
-        if (result && result.data?.session?.user) {
-          const profile = await withTimeout(
-            fetchProfile(result.data.session.user.id),
-            3000
-          );
-          if (mounted) setUser(profile);
-        }
-      } catch (err) {
-        console.error("Auth init error:", err);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
+  // Login for regular users (after OTP verification)
+  const loginWithPhone = useCallback((phone: string) => {
+    const mockUser: User = {
+      id: `user_${Date.now()}`,
+      name: "User",
+      email: "",
+      phone,
+      role: "customer",
     };
+    setUser(mockUser);
 
-    initAuth();
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-
-      if (event === "SIGNED_IN" && session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        if (mounted) setUser(profile);
-      } else if (event === "SIGNED_OUT") {
-        if (mounted) setUser(null);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [supabase, fetchProfile]);
-
-  const login = async (email: string, password: string): Promise<User | null> => {
-    const signInPromise = Promise.resolve(supabase.auth.signInWithPassword({
-      email,
-      password,
-    }));
-    
-    const result = await withTimeout(signInPromise, 10000);
-    if (!result) {
-      throw new Error("Login request timed out. Please check your connection.");
+    if (typeof window !== "undefined") {
+      localStorage.setItem("iv-patch-user", JSON.stringify(mockUser));
     }
+  }, []);
 
-    const { data, error } = result;
-    if (error) {
-      console.error("Login error:", error.message);
-      throw new Error(error.message);
-    }
-
-    if (data?.user) {
-      const profile = await fetchProfile(data.user.id);
-      if (profile) {
-        setUser(profile);
-        return profile;
-      }
-
-      // Fallback if profile row is missing or timed out
-      const fallbackUser: User = {
-        id: data.user.id,
-        name: data.user.user_metadata?.first_name 
-          ? `${data.user.user_metadata.first_name} ${data.user.user_metadata.last_name || ""}`.trim()
-          : data.user.email?.split("@")[0] || "User",
-        email: data.user.email || "",
-        phone: data.user.user_metadata?.phone || "",
-        role: "customer"
+  // Admin login with email/password
+  const loginAdmin = useCallback((email: string, password: string): boolean => {
+    if (email === "admin@ivpatch.com" && password === "admin@123") {
+      const adminUser: User = {
+        id: "admin_001",
+        name: "Admin",
+        email: "admin@ivpatch.com",
+        phone: "",
+        role: "admin",
       };
-      setUser(fallbackUser);
-      return fallbackUser;
+      setUser(adminUser);
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("iv-patch-user", JSON.stringify(adminUser));
+      }
+      return true;
     }
+    return false;
+  }, []);
 
-    return null;
-  };
-
-  const register = async (registerData: {
+  // Register a new user (after OTP + details form)
+  const registerUser = useCallback((data: {
+    phone: string;
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
-    password: string;
-  }): Promise<User | null> => {
-    const signUpPromise = Promise.resolve(supabase.auth.signUp({
-      email: registerData.email,
-      password: registerData.password,
-      options: {
-        data: {
-          first_name: registerData.firstName,
-          last_name: registerData.lastName,
-          phone: registerData.phone,
-        },
-      },
-    }));
+    gender: string;
+  }) => {
+    const newUser: User = {
+      id: `user_${Date.now()}`,
+      name: `${data.firstName} ${data.lastName}`.trim(),
+      email: data.email,
+      phone: data.phone,
+      role: "customer",
+    };
+    setUser(newUser);
 
-    const result = await withTimeout(signUpPromise, 10000);
-    if (!result) {
-      throw new Error("Registration timed out. Please try again.");
+    if (typeof window !== "undefined") {
+      localStorage.setItem("iv-patch-user", JSON.stringify(newUser));
     }
 
-    const { data, error } = result;
-    if (error) {
-      console.error("Register error:", error.message);
-      throw new Error(error.message);
-    }
+    // TODO: Save to Supabase profiles table when Clerk is integrated
+  }, []);
 
-    if (data?.user) {
-      const profile = await fetchProfile(data.user.id);
-      
-      if (profile) {
-        setUser(profile);
-        return profile;
-      }
-      
-      // Fallback if trigger hasn't fired yet
-      const fallbackUser: User = {
-        id: data.user.id,
-        name: `${registerData.firstName} ${registerData.lastName}`.trim(),
-        email: registerData.email,
-        phone: registerData.phone,
-        role: "customer"
-      };
-      setUser(fallbackUser);
-      return fallbackUser;
-    }
-
-    return null;
-  };
-
-  const logout = async () => {
-    // Clear user state immediately for instant UI feedback
+  const logout = useCallback(() => {
     setUser(null);
-
-    try {
-      // Sign out with timeout to prevent hanging
-      await withTimeout(supabase.auth.signOut(), 3000);
-    } catch (err) {
-      console.error("Logout error:", err);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("iv-patch-user");
     }
+  }, []);
 
-    // Force clear auth storage as backup
+  // Restore session from localStorage on mount
+  React.useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        localStorage.removeItem("iv-patch-auth");
-        // Also clear any stale Supabase keys
-        Object.keys(localStorage).forEach((key) => {
-          if (key.startsWith("sb-")) {
-            localStorage.removeItem(key);
-          }
-        });
+        const saved = localStorage.getItem("iv-patch-user");
+        if (saved) {
+          setUser(JSON.parse(saved));
+        }
       } catch {
-        // Ignore storage errors
+        // Ignore parse errors
       }
     }
-  };
+  }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user, login, register, logout, isLoggedIn: !!user, isLoading }}
+      value={{
+        user,
+        loginWithPhone,
+        loginAdmin,
+        registerUser,
+        logout,
+        isLoggedIn: !!user,
+        isLoading,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,231 +1,365 @@
 "use client";
 
-import React, { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
-import SocialsSection from "@/components/sections/SocialsSection";
-import NewsletterSection from "@/components/sections/NewsletterSection";
-import Footer from "@/components/layout/Footer";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import CustomCountrySelect from "@/components/ui/CustomCountrySelect";
+import { useAuth } from "@/context/AuthContext";
+import "react-phone-number-input/style.css";
+
+type Step = "phone" | "otp" | "details";
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    email: "",
-    password: "",
-    confirmPassword: ""
-  });
+  const [phone, setPhone] = useState<string | undefined>("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register } = useAuth();
+  const [step, setStep] = useState<Step>("phone");
+  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [resendTimer, setResendTimer] = useState(0);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
+  const { registerUser } = useAuth();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  // Additional details form
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [gender, setGender] = useState("Male");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Resend timer countdown
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendTimer]);
+
+  // Auto-focus first OTP input
+  useEffect(() => {
+    if (step === "otp" && otpRefs.current[0]) {
+      otpRefs.current[0]?.focus();
+    }
+  }, [step]);
+
+  const handleGetOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters");
+    if (!phone || !isValidPhoneNumber(phone)) {
+      setError("Please enter a valid phone number.");
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+    if (!agreedToTerms) {
+      setError("Please agree to the Terms of Service & Privacy Policy.");
       return;
     }
 
     setLoading(true);
 
-    try {
-      const newUser = await register({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-      });
-
-      if (newUser) {
-        router.push("/profile");
-      } else {
-        setError("Registration failed. Please try again.");
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Registration failed";
-      if (message.includes("already registered")) {
-        setError("This email is already registered. Please sign in instead.");
-      } else {
-        setError(message);
-      }
+    // Mock OTP sending — TODO: Replace with Clerk signUp.create() when ready
+    setTimeout(() => {
       setLoading(false);
+      setStep("otp");
+      setResendTimer(30);
+    }, 1200);
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) {
+      const digits = value.replace(/\D/g, "").slice(0, 4);
+      const newOtp = [...otp];
+      digits.split("").forEach((d, i) => {
+        if (index + i < 4) newOtp[index + i] = d;
+      });
+      setOtp(newOtp);
+      const nextIndex = Math.min(index + digits.length, 3);
+      otpRefs.current[nextIndex]?.focus();
+      return;
     }
+
+    if (!/^\d*$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < 3) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    const code = otp.join("");
+
+    if (code.length < 4) {
+      setError("Please enter the complete 4-digit code.");
+      return;
+    }
+
+    // Default OTP is 1234
+    if (code !== "1234") {
+      setError("Invalid OTP. Please try again.");
+      return;
+    }
+
+    setLoading(true);
+
+    // Mock verify — TODO: Replace with Clerk attemptPhoneNumberVerification() when ready
+    setTimeout(() => {
+      setLoading(false);
+      setStep("details");
+    }, 1200);
+  };
+
+  const handleResend = () => {
+    if (resendTimer > 0) return;
+    setOtp(["", "", "", ""]);
+    setResendTimer(30);
+  };
+
+  const handleDetailsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+
+    // Register user in context & localStorage
+    setTimeout(() => {
+      registerUser({
+        phone: phone || "",
+        firstName,
+        lastName,
+        email,
+        gender,
+      });
+      setLoading(false);
+      router.push("/profile");
+    }, 1200);
   };
 
   return (
     <main className="bg-[#f2f2f2] min-h-screen p-[20px] md:p-[22px]">
-      <div className="max-w-[1252px] mx-auto flex flex-col gap-10 items-center">
+      <div className="max-w-[1252px] mx-auto flex flex-col gap-6 items-center">
         <Navbar />
 
-        <div className="w-full flex justify-center py-[10px] md:py-[40px]">
-          <div className="w-full max-w-[600px] bg-white rounded-[24px] p-10 shadow-sm">
-            <h1 className="text-[#1a1a1a] text-[42px] font-['Satoshi:Medium',sans-serif] mb-2 leading-tight">Create Account</h1>
-            <p className="text-[#808080] text-[20px] font-['Satoshi:Regular',sans-serif] mb-8">Join the IVPATCH community today</p>
+        {/* Register Card */}
+        <div className="w-full max-w-[1252px] min-h-[722px] bg-[#9DA9A3] rounded-[16px] flex items-center justify-center py-12 md:py-16 px-4 relative">
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  name="firstName"
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
-                  required
-                  disabled={loading}
-                />
-                <input
-                  name="lastName"
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              <input
-                name="phone"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
-                required
-                disabled={loading}
-              />
-
-              <input
-                name="email"
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
-                required
-                disabled={loading}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative flex items-center">
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password (min. 8 characters)"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 pr-12 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
-                    required
-                    minLength={8}
-                    disabled={loading}
-                  />
-                  <button 
-                    type="button" 
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 text-[#999999] hover:text-[#1a1a1a] transition-colors"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      {showPassword ? (
-                         <>
-                           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                           <line x1="1" y1="1" x2="23" y2="23"></line>
-                         </>
-                      ) : (
-                         <>
-                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                           <circle cx="12" cy="12" r="3"></circle>
-                         </>
-                      )}
-                    </svg>
-                  </button>
-                </div>
-                <div className="relative flex items-center">
-                  <input
-                    name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm Password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="w-full h-[60px] bg-[#f2f2f2] rounded-[12px] px-6 pr-12 text-[20px] font-['Satoshi:Regular',sans-serif] text-black placeholder-[#999999] outline-none border border-transparent focus:border-black/10 transition-all"
-                    required
-                    disabled={loading}
-                  />
-                  <button 
-                    type="button" 
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 text-[#999999] hover:text-[#1a1a1a] transition-colors"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      {showConfirmPassword ? (
-                         <>
-                           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                           <line x1="1" y1="1" x2="23" y2="23"></line>
-                         </>
-                      ) : (
-                         <>
-                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                           <circle cx="12" cy="12" r="3"></circle>
-                         </>
-                      )}
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {error && (
-                <p className="text-[#B12422] text-[14px] font-['Satoshi:Regular',sans-serif]">{error}</p>
-              )}
-
+          {/* ─── Step 3: Additional Details ─── */}
+          {step === "details" && (
+            <div className="flex flex-col items-center w-full max-w-[627px]">
               <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-[60px] bg-[#1A1A1A] text-white rounded-[12px] text-[20px] font-['Satoshi:Regular',sans-serif] hover:bg-black transition-all shadow-lg active:scale-[0.98] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+                type="button"
+                onClick={() => { setStep("otp"); setError(""); }}
+                className="absolute top-6 left-8 flex items-center gap-2 text-white/80 hover:text-white text-[16px] font-['Satoshi:Regular',sans-serif] transition-colors"
               >
-                {loading ? (
-                  <div className="flex items-center gap-3">
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Creating account…
-                  </div>
-                ) : (
-                  "Create Account"
-                )}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+                Go Back
               </button>
 
-              <div className="flex items-center justify-between text-[14px] font-['Satoshi:Regular',sans-serif]">
-                <span className="text-[#999999]">Already have an account?</span>
-                <Link href="/login" className="text-[#1a1a1a] cursor-pointer hover:underline font-medium">Sign In</Link>
-              </div>
-            </form>
-          </div>
-        </div>
+              <img src="/login-icon.svg" alt="Details" className="w-[100px] h-[100px] mb-6" />
 
-        <SocialsSection />
-        <NewsletterSection />
-        <Footer />
+              <h1 className="text-white text-[28px] md:text-[30px] font-['Satoshi:Bold',sans-serif] mb-10 text-center">
+                Add additional details
+              </h1>
+
+              <form onSubmit={handleDetailsSubmit} className="w-full flex flex-col items-center gap-5">
+                <div className="w-full flex flex-col md:flex-row gap-4">
+                  <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                    className="flex-1 h-[58px] bg-white rounded-[12px] px-5 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] text-[#1a1a1a] outline-none placeholder:text-[#999] border border-transparent focus:border-[#445C4F]/30 transition-all"
+                    required disabled={loading} />
+                  <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)}
+                    className="flex-1 h-[58px] bg-white rounded-[12px] px-5 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] text-[#1a1a1a] outline-none placeholder:text-[#999] border border-transparent focus:border-[#445C4F]/30 transition-all"
+                    required disabled={loading} />
+                </div>
+
+                <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)}
+                  className="w-full h-[58px] bg-white rounded-[12px] px-5 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] text-[#1a1a1a] outline-none placeholder:text-[#999] border border-transparent focus:border-[#445C4F]/30 transition-all"
+                  required disabled={loading} />
+
+                <div className="w-full flex items-center gap-6 mt-1">
+                  {["Male", "Female", "Other"].map((option) => (
+                    <label key={option} className="flex items-center gap-2 cursor-pointer select-none" onClick={() => setGender(option)}>
+                      <div className={`w-[20px] h-[20px] rounded-full border-2 flex items-center justify-center transition-all ${gender === option ? "border-white" : "border-white/50"}`}>
+                        {gender === option && <div className="w-[10px] h-[10px] rounded-full bg-white" />}
+                      </div>
+                      <span className={`text-[16px] font-['Satoshi:Medium',sans-serif] transition-colors ${gender === option ? "text-white" : "text-white/60"}`}>{option}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {error && <p className="text-red-200 text-[14px] font-['Satoshi:Regular',sans-serif] w-full text-left">{error}</p>}
+
+                <button type="submit" disabled={loading}
+                  className="w-full h-[64px] bg-[#445C4F] hover:bg-[#3a5043] text-white rounded-[16px] text-[24px] md:text-[30px] font-['Satoshi:Bold',sans-serif] transition-all active:scale-[0.98] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed shadow-lg mt-4">
+                  {loading ? (
+                    <div className="flex items-center gap-3">
+                      <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Setting up…
+                    </div>
+                  ) : "Continue"}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* ─── Step 2: OTP Verification ─── */}
+          {step === "otp" && (
+            <div className="flex flex-col items-center w-full max-w-[627px]">
+              <button type="button" onClick={() => { setStep("phone"); setOtp(["", "", "", ""]); setError(""); }}
+                className="absolute top-6 left-8 flex items-center gap-2 text-white/80 hover:text-white text-[16px] font-['Satoshi:Regular',sans-serif] transition-colors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+                Go Back
+              </button>
+
+              <img src="/login-icon.svg" alt="Register" className="w-[100px] h-[100px] mb-6" />
+              <h1 className="text-white text-[28px] md:text-[30px] font-['Satoshi:Bold',sans-serif] mb-2 text-center">Sign in to continue</h1>
+              <p className="text-white/60 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] mb-10 text-center">Please enter the code we've just sent to your mobile</p>
+
+              <form onSubmit={handleVerifyOtp} className="w-full flex flex-col items-center gap-6">
+                <div className="flex items-center justify-center gap-[16px]">
+                  {otp.map((digit, idx) => (
+                    <input key={idx} ref={(el) => { otpRefs.current[idx] = el; }} type="text" inputMode="numeric" maxLength={4} value={digit}
+                      onChange={(e) => handleOtpChange(idx, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                      className="w-[62px] h-[90px] bg-white/20 border border-white/25 rounded-[12px] text-white text-[36px] font-['Satoshi:Bold',sans-serif] text-center outline-none focus:border-white/60 focus:bg-white/25 transition-all placeholder:text-white/25"
+                      placeholder="–" />
+                  ))}
+                </div>
+
+                {error && <p className="text-red-200 text-[14px] font-['Satoshi:Regular',sans-serif] text-center">{error}</p>}
+
+                <button type="submit" disabled={loading}
+                  className="w-full max-w-[627px] h-[64px] bg-[#445C4F] hover:bg-[#3a5043] text-white rounded-[16px] text-[24px] md:text-[30px] font-['Satoshi:Bold',sans-serif] transition-all active:scale-[0.98] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed shadow-lg mt-4">
+                  {loading ? (
+                    <div className="flex items-center gap-3">
+                      <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Verifying…
+                    </div>
+                  ) : "Continue"}
+                </button>
+
+                <div className="flex flex-col items-center gap-1 mt-2">
+                  <p className="text-white/60 text-[15px] font-['Satoshi:Regular',sans-serif]">Didn't receive OTP?</p>
+                  <button type="button" onClick={handleResend} disabled={resendTimer > 0}
+                    className={`text-[16px] font-['Satoshi:Bold',sans-serif] underline underline-offset-2 transition-colors ${resendTimer > 0 ? "text-white/40 cursor-not-allowed" : "text-white hover:text-white/90 cursor-pointer"}`}>
+                    {resendTimer > 0 ? `Resend Code (${resendTimer}s)` : "Resend Code"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* ─── Step 1: Phone Input ─── */}
+          {step === "phone" && (
+            <div className="flex flex-col items-center w-full max-w-[627px]">
+              <img src="/login-icon.svg" alt="Register" className="w-[100px] h-[100px] mb-6" />
+              <h1 className="text-white text-[28px] md:text-[30px] font-['Satoshi:Bold',sans-serif] mb-8 text-center">Create Your Account</h1>
+
+              <form onSubmit={handleGetOtp} className="w-full flex flex-col items-center gap-5">
+                <div className="w-full h-[82px] rounded-[16px] flex items-center overflow-visible register-phone-wrapper">
+                  <PhoneInput international countryCallingCodeEditable={false} defaultCountry="AE" value={phone}
+                    onChange={(value) => setPhone(value)} placeholder="Enter your phone number"
+                    className="w-full h-full phone-input-custom" countrySelectComponent={CustomCountrySelect}
+                    numberInputProps={{ className: "phone-number-input" }} />
+                </div>
+
+                {error && <p className="text-red-200 text-[14px] font-['Satoshi:Regular',sans-serif] w-full text-left">{error}</p>}
+
+                <label className="flex items-center gap-3 w-full cursor-pointer select-none mt-1">
+                  <div onClick={(e) => { e.preventDefault(); setAgreedToTerms(!agreedToTerms); }}
+                    className={`w-[22px] h-[22px] rounded-[5px] border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 cursor-pointer ${agreedToTerms ? "bg-white border-white" : "bg-transparent border-white/70"}`}>
+                    {agreedToTerms && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#445C4F" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    )}
+                  </div>
+                  <span className="text-white/80 text-[14px] md:text-[16px] font-['Satoshi:Medium',sans-serif] leading-snug">
+                    I agree to the <span className="text-white font-['Satoshi:Bold',sans-serif]">Terms of Service</span> & <span className="text-white font-['Satoshi:Bold',sans-serif]">Privacy Policy</span>
+                  </span>
+                </label>
+
+                <button type="submit" disabled={loading}
+                  className="w-full h-[64px] bg-[#445C4F] hover:bg-[#3a5043] text-white rounded-[16px] text-[24px] md:text-[30px] font-['Satoshi:Bold',sans-serif] transition-all active:scale-[0.98] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed shadow-lg mt-2">
+                  {loading ? (
+                    <div className="flex items-center gap-3">
+                      <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Sending OTP…
+                    </div>
+                  ) : "Get Otp"}
+                </button>
+
+                <div className="flex items-center gap-4 w-full my-2">
+                  <div className="flex-1 h-[1px] bg-white/20" />
+                  <span className="text-white/60 text-[14px] font-['Satoshi:Regular',sans-serif] whitespace-nowrap">or continue with</span>
+                  <div className="flex-1 h-[1px] bg-white/20" />
+                </div>
+
+                <div className="flex items-center justify-center gap-6">
+                  <button type="button" className="w-[56px] h-[56px] rounded-full bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-white/25 transition-all">
+                    <img src="/google-icon.svg" alt="Google" className="w-[24px] h-[24px] object-contain" />
+                  </button>
+                  <button type="button" className="w-[56px] h-[56px] rounded-full bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-white/25 transition-all">
+                    <img src="/apple-icon.svg" alt="Apple" className="w-[24px] h-[24px] object-contain" />
+                  </button>
+                </div>
+
+                <p className="text-white/70 text-[14px] md:text-[16px] font-['Satoshi:Regular',sans-serif] mt-4">
+                  Already have an account?{" "}
+                  <Link href="/login" className="text-white font-['Satoshi:Bold',sans-serif] hover:underline underline-offset-2 cursor-pointer">Sign In</Link>
+                </p>
+              </form>
+            </div>
+          )}
+        </div>
       </div>
+
+      <style jsx global>{`
+        .register-phone-wrapper .PhoneInput {
+          display: flex; align-items: center; height: 100%; width: 100%; gap: 0; position: relative;
+        }
+        .register-phone-wrapper .phone-number-input,
+        .register-phone-wrapper .PhoneInputInput {
+          background: rgba(255,255,255,0.15) !important; border: none !important; outline: none !important;
+          color: white; font-size: 20px; font-family: 'Satoshi', sans-serif; font-weight: 400;
+          padding-left: 18px; height: 100%; flex: 1; border-radius: 0 16px 16px 0;
+        }
+        .register-phone-wrapper .PhoneInputInput::placeholder { color: rgba(255,255,255,0.45); font-weight: 400; }
+        .register-phone-wrapper .PhoneInputCountryCallingCode {
+          color: white; font-size: 20px; font-family: 'Satoshi', sans-serif; font-weight: 500;
+        }
+      `}</style>
     </main>
   );
 }

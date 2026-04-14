@@ -35,8 +35,11 @@ export async function getProducts(filters: ProductFilters = {}) {
       product_variants (*)
     `,
       { count: "exact" }
-    )
-    .eq("status", status);
+    );
+
+  if (status) {
+    query = query.eq("status", status);
+  }
 
   if (featured !== undefined) {
     query = query.eq("featured", featured);
@@ -128,24 +131,49 @@ export async function createProduct(
   return data;
 }
 
+// Known columns in the 'products' table — prevents Supabase errors from unknown fields
+const PRODUCT_COLUMNS = new Set([
+  "name", "slug", "description", "short_description", "base_price",
+  "compare_at_price", "cost_per_item", "sku", "barcode", "status",
+  "featured", "track_inventory", "total_inventory", "low_stock_threshold",
+  "meta_title", "meta_description", "ingredients", "usage_instructions",
+  "benefits", "updated_at",
+]);
+
 export async function updateProduct(
   id: string,
   updates: Record<string, unknown>
 ) {
+  // Strip out any keys not in the products table to prevent Supabase errors
+  const cleanUpdates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  for (const [key, value] of Object.entries(updates)) {
+    if (PRODUCT_COLUMNS.has(key)) {
+      cleanUpdates[key] = value;
+    }
+  }
+
   const { data, error } = await (supabase as any)
     .from("products")
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(cleanUpdates)
     .eq("id", id)
-    .select()
-    .single();
+    .select();
 
   if (error) throw error;
-  return data;
+  return data?.[0] ?? null;
 }
 
 export async function deleteProduct(id: string) {
-  // Soft delete — set status to archived
-  return updateProduct(id, { status: "archived" });
+  // Hard delete — permanently remove from database
+  // Delete related records first to avoid FK constraint errors
+  await (supabase as any).from("product_images").delete().eq("product_id", id);
+  await (supabase as any).from("product_variants").delete().eq("product_id", id);
+
+  const { error } = await (supabase as any)
+    .from("products")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
 }
 
 // ─── Product variants ───────────────────────────────────────
@@ -224,6 +252,26 @@ export async function uploadProductImage(
       product_id: productId,
       image_url: publicUrl,
       alt_text: altText || file.name,
+      is_primary: isPrimary || false,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function addProductImageUrl(
+  productId: string,
+  url: string,
+  isPrimary?: boolean
+) {
+  const { data, error } = await (supabase as any)
+    .from("product_images")
+    .insert({
+      product_id: productId,
+      image_url: url,
+      alt_text: "Product Image",
       is_primary: isPrimary || false,
     })
     .select()

@@ -18,6 +18,8 @@ const FALLBACK_PRODUCTS = [
 
 function mapProductToCard(p: ProductWithRelations) {
   const primaryImage = p.product_images?.find((img) => img.is_primary) || p.product_images?.[0];
+  const secondaryImage = p.product_images?.filter((img) => !img.is_primary)[0] || primaryImage;
+  
   const bg = p.slug === "neuro-boost"
     ? "bg-gradient-to-b from-[#fcdb59] to-[#dcbe3c]"
     : "bg-white";
@@ -28,6 +30,7 @@ function mapProductToCard(p: ProductWithRelations) {
     name: p.name,
     price: `$${p.base_price}`,
     image: primaryImage?.image_url || "/product1.svg",
+    hoverImage: secondaryImage?.image_url || null,
     bg,
   };
 }
@@ -167,9 +170,15 @@ export default function RangeProductsGrid() {
       {/* Products Grid — always show products, show skeleton overlay only briefly */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-10">
         {isLoading ? (
-          // Show fallback products immediately while loading from DB
-          products.map((product) => (
-            <ProductCard key={product.id} {...product} />
+          // Skeleton Loader
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="animate-pulse flex flex-col group">
+              <div className="bg-[#e5e5e5] h-[380px] md:h-[450px] rounded-[16px] w-full border border-black/5"></div>
+              <div className="mt-4 flex justify-between items-center px-2">
+                 <div className="h-[22px] bg-[#e5e5e5] rounded-md w-[40%]"></div>
+                 <div className="h-[22px] bg-[#e5e5e5] rounded-md w-[20%]"></div>
+              </div>
+            </div>
           ))
         ) : (
           products.map((product) => (

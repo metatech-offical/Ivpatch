@@ -10,11 +10,12 @@ type ProductCardProps = {
   name: string;
   price: string;
   image: string;
+  hoverImage?: string | null;
   bg: string;
   buttonText?: string;
 };
 
-export default function ProductCard({ id, product_id, name, price, image, bg, buttonText = "Add to Cart" }: ProductCardProps) {
+export default function ProductCard({ id, product_id, name, price, image, hoverImage, bg, buttonText = "Add to Cart" }: ProductCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const { addItem } = useCart();
@@ -66,8 +67,15 @@ export default function ProductCard({ id, product_id, name, price, image, bg, bu
           <img
             alt={name}
             src={image}
-            className="w-full h-full object-cover drop-shadow-[0_8px_16px_rgba(0,0,0,0.1)] transform transition-transform duration-500 group-hover:scale-105"
+            className={`absolute inset-0 w-full h-full object-cover drop-shadow-[0_8px_16px_rgba(0,0,0,0.1)] transform transition-all duration-700 ease-in-out ${hoverImage && isHovered ? 'opacity-0' : 'opacity-100'}`}
           />
+          {hoverImage && (
+            <img
+              alt={`${name} alternate`}
+              src={hoverImage}
+              className={`absolute inset-0 w-full h-full object-cover drop-shadow-[0_8px_16px_rgba(0,0,0,0.1)] transform transition-all duration-700 ease-in-out scale-100 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+            />
+          )}
         </div>
 
         {/* Add to Cart Button (Hover) */}

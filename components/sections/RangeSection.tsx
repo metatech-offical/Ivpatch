@@ -5,11 +5,38 @@ export default function RangeSection() {
     { name: "Energy Release", img: "/green.svg", size: "large" },
     { name: "Muscle Fuel", img: "/red.svg", size: "large" },
     { name: "Immunity", img: "/yellow.svg", size: "wide" },
-    { name: "Collagen", img: "/brown.svg", size: "wide" },
+    { name: "Collagen Formula", img: "/brown.svg", size: "wide" },
     { name: "Neuro", img: "/lemon.svg", size: "small" },
     { name: "ED", img: "/blue.svg", size: "small" },
     { name: "NMN-NAD+", img: "/black.svg", size: "small" },
   ];
+
+  const CardContent = ({ product }: { product: typeof products[0] }) => (
+    <>
+      <Link href="/range" className="absolute inset-0 z-0">
+        <img
+          src={product.img}
+          alt={product.name}
+          className="w-full h-full object-cover max-md:object-bottom transition-all duration-500 group-hover:blur-[4px]"
+        />
+      </Link>
+
+      {/* Product Name Box - Top Right */}
+      <div className="absolute top-4 right-4 min-w-[106px] w-fit h-[48px] bg-black/40 backdrop-blur-md rounded-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none px-4">
+        <span className="text-white text-[20px] font-['Satoshi:Medium',sans-serif] whitespace-nowrap leading-none">
+          {product.name}
+        </span>
+      </div>
+
+      {/* Buy Now Button - Bottom Right */}
+      <Link
+        href="/range#products"
+        className="absolute bottom-4 right-4 w-[138px] h-[44px] bg-white/90 backdrop-blur-sm rounded-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 hover:bg-white transition-all shadow-sm"
+      >
+        <span className="text-black text-[20px] font-['Satoshi:Medium',sans-serif]">Buy Now</span>
+      </Link>
+    </>
+  );
 
   return (
     <section
@@ -32,36 +59,35 @@ export default function RangeSection() {
           {/* Top Row for Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Energy Release */}
-            <Link href="/range" className="bg-[#cfcfcf] h-[360px] md:h-[398px] overflow-hidden rounded-[16px] relative group cursor-pointer lg:col-span-1">
-              <img src={products[0].img} alt="" className="w-full h-full object-cover max-md:object-bottom transition-transform duration-500 group-hover:scale-105" />
-            </Link>
+            <div className="bg-[#cfcfcf] h-[360px] md:h-[398px] overflow-hidden rounded-[16px] relative group cursor-pointer lg:col-span-1">
+              <CardContent product={products[0]} />
+            </div>
             {/* Muscle Fuel */}
-            <Link href="/range" className="bg-[#cfcfcf] h-[360px] md:h-[398px] overflow-hidden rounded-[16px] relative group cursor-pointer lg:col-span-1">
-              <img src={products[1].img} alt="" className="w-full h-full object-cover max-md:object-bottom transition-transform duration-500 group-hover:scale-105" />
-            </Link>
+            <div className="bg-[#cfcfcf] h-[360px] md:h-[398px] overflow-hidden rounded-[16px] relative group cursor-pointer lg:col-span-1">
+              <CardContent product={products[1]} />
+            </div>
             {/* Wide stack for Immunity and Collagen */}
             <div className="hidden md:flex flex-col gap-5 md:col-span-2 lg:col-span-2">
-              <Link href="/range" className="bg-[#cfcfcf] h-[160px] md:h-[190px] overflow-hidden rounded-[16px] relative group cursor-pointer">
-                <img src={products[2].img} alt="" className="w-full h-full object-cover max-md:object-bottom transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-md px-3 py-1 rounded-md text-white text-sm">Immunity</div>
-              </Link>
-              <Link href="/range" className="bg-[#cfcfcf] h-[160px] md:h-[190px] overflow-hidden rounded-[16px] relative group cursor-pointer">
-                <img src={products[3].img} alt="" className="w-full h-full object-cover max-md:object-bottom transition-transform duration-500 group-hover:scale-105" />
-              </Link>
+              <div className="bg-[#cfcfcf] h-[160px] md:h-[190px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+                <CardContent product={products[2]} />
+              </div>
+              <div className="bg-[#cfcfcf] h-[160px] md:h-[190px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+                <CardContent product={products[3]} />
+              </div>
             </div>
           </div>
 
           {/* Bottom Row for Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Link href="/range" className="bg-[#cfcfcf] h-[200px] md:h-[220px] overflow-hidden rounded-[16px] relative group cursor-pointer">
-              <img src={products[4].img} alt="" className="w-full h-full object-cover max-md:object-bottom transition-transform duration-500 group-hover:scale-105" />
-            </Link>
-            <Link href="/range" className="bg-[#cfcfcf] h-[200px] md:h-[220px] overflow-hidden rounded-[16px] relative group cursor-pointer">
-              <img src={products[5].img} alt="" className="w-full h-full object-cover max-md:object-bottom transition-transform duration-500 group-hover:scale-105" />
-            </Link>
-            <Link href="/range" className="bg-[#cfcfcf] h-[200px] md:h-[220px] overflow-hidden rounded-[16px] relative group cursor-pointer">
-              <img src={products[6].img} alt="" className="w-full h-full object-cover max-md:object-bottom transition-transform duration-500 group-hover:scale-105" />
-            </Link>
+            <div className="bg-[#cfcfcf] h-[200px] md:h-[220px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+              <CardContent product={products[4]} />
+            </div>
+            <div className="bg-[#cfcfcf] h-[200px] md:h-[220px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+              <CardContent product={products[5]} />
+            </div>
+            <div className="bg-[#cfcfcf] h-[200px] md:h-[220px] overflow-hidden rounded-[16px] relative group cursor-pointer">
+              <CardContent product={products[6]} />
+            </div>
           </div>
         </div>
       </div>
