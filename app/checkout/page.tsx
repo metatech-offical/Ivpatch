@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import ProductCard from "@/components/sections/range/ProductCard";
@@ -9,6 +9,8 @@ import Footer from "@/components/layout/Footer";
 import SocialsSection from "@/components/sections/SocialsSection";
 import NewsletterSection from "@/components/sections/NewsletterSection";
 import ComingSoonTooltip from "@/components/ui/ComingSoonTooltip";
+import { getProducts } from "@/lib/supabase/products";
+import type { ProductWithRelations } from "@/lib/supabase/types";
 
 export default function CheckoutPage() {
   const { items, subtotal, setIsOpen } = useCart();
@@ -20,6 +22,44 @@ export default function CheckoutPage() {
   const taxes = 6.66;
   const shippingCharge = selectedShipping === "prepaid" ? 0 : 0.60;
   const total = subtotal + taxes + shippingCharge;
+
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRecs = async () => {
+      try {
+        const { products } = await getProducts({ limit: 20 });
+        if (products && products.length > 0) {
+          // Logic: products already in cart should be last
+          const cartProductIds = new Set(items.map(item => item.product_id));
+          
+          const sorted = [...products].sort((a, b) => {
+            const aInCart = cartProductIds.has(a.id) ? 1 : 0;
+            const bInCart = cartProductIds.has(b.id) ? 1 : 0;
+            return aInCart - bInCart;
+          });
+
+          const mapped = sorted.map(p => {
+             const primaryImage = p.product_images?.find((img: any) => img.is_primary) || p.product_images?.[0];
+             const secondaryImage = p.product_images?.filter((img: any) => !img.is_primary)[0] || primaryImage;
+             return {
+                id: p.slug,
+                product_id: p.id,
+                name: p.name,
+                price: `$${p.base_price}`,
+                image: primaryImage?.image_url || "/product1.svg",
+                hoverImage: secondaryImage?.image_url || null,
+                bg: p.slug === "neuro-boost" ? "bg-gradient-to-b from-[#fcdb59] to-[#dcbe3c]" : "bg-white"
+             };
+          });
+          setRecommendations(mapped.slice(0, 4));
+        }
+      } catch (err) {
+        console.error("Failed to load checkout recommendations:", err);
+      }
+    };
+    fetchRecs();
+  }, [items]);
 
   // Split items into main and miniatures
   const mainProduct = items[0];
@@ -277,42 +317,60 @@ export default function CheckoutPage() {
           <h2 className="text-[#1A1A1A] text-[28px] md:text-[42px] font-['Satoshi:Medium',sans-serif]">Pairs well with</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[20px] w-full max-w-[350px] md:max-w-none">
-             <ProductCard 
-                id="energy-release"
-                product_id=""
-                name="Energy Release"
-                price="$94"
-                image="/product4.svg"
-                bg="bg-white"
-                buttonText="Buy Now"
-             />
-             <ProductCard 
-                id="neuro-boost"
-                product_id=""
-                name="Neuro Boost"
-                price="$102"
-                image="/product3.svg"
-                bg="bg-white"
-                buttonText="Buy Now"
-             />
-             <ProductCard 
-                id="collagen-formula"
-                product_id=""
-                name="Collagen Formula"
-                price="$94"
-                image="/product2.svg"
-                bg="bg-white"
-                buttonText="Buy Now"
-             />
-             <ProductCard 
-                id="ed"
-                product_id=""
-                name="ED"
-                price="$94"
-                image="/product5.svg"
-                bg="bg-white"
-                buttonText="Buy Now"
-             />
+             {recommendations.length > 0 ? (
+               recommendations.map((p) => (
+                <ProductCard 
+                    key={p.product_id}
+                    id={p.id}
+                    product_id={p.product_id}
+                    name={p.name}
+                    price={p.price}
+                    image={p.image}
+                    hoverImage={p.hoverImage}
+                    bg={p.bg}
+                    buttonText="Buy Now"
+                />
+               ))
+             ) : (
+               <>
+                <ProductCard 
+                    id="energy-release"
+                    product_id=""
+                    name="Energy Release"
+                    price="$94"
+                    image="/product4.svg"
+                    bg="bg-white"
+                    buttonText="Buy Now"
+                />
+                <ProductCard 
+                    id="neuro-boost"
+                    product_id=""
+                    name="Neuro Boost"
+                    price="$102"
+                    image="/product3.svg"
+                    bg="bg-white"
+                    buttonText="Buy Now"
+                />
+                <ProductCard 
+                    id="collagen-formula"
+                    product_id=""
+                    name="Collagen Formula"
+                    price="$94"
+                    image="/product2.svg"
+                    bg="bg-white"
+                    buttonText="Buy Now"
+                />
+                <ProductCard 
+                    id="ed"
+                    product_id=""
+                    name="ED"
+                    price="$94"
+                    image="/product5.svg"
+                    bg="bg-white"
+                    buttonText="Buy Now"
+                />
+               </>
+             )}
           </div>
         </div>
 
