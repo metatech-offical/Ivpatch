@@ -184,9 +184,9 @@ export default function ProductsSection() {
             const oldId = existingImageIds[i];
             
             if (oldId) {
-               await supabase.from("product_images").update({ image_url: publicUrl, sort_order: i }).eq("id", oldId);
+               await (supabase as any).from("product_images").update({ image_url: publicUrl, sort_order: i }).eq("id", oldId);
             } else {
-               await supabase.from("product_images").insert({
+               await (supabase as any).from("product_images").insert({
                  product_id: productId, image_url: publicUrl, alt_text: `Image ${i+1}`, is_primary: i === 0, sort_order: i
                });
             }

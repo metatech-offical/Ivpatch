@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     if (existing) {
       // Update existing profile
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("profiles")
         .update({
           first_name: firstName || null,
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create new profile
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("profiles")
       .insert({
         id: clerkUserId,

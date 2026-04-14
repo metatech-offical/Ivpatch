@@ -67,7 +67,7 @@ export default function ProfilePage() {
   const loadAddresses = async () => {
     if (!user) return;
     try {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("user_addresses")
         .select("*")
         .eq("user_id", user.id)
@@ -121,7 +121,7 @@ export default function ProfilePage() {
 
   const handleDeleteAddress = async (id: string) => {
     try {
-      await supabase.from("user_addresses").delete().eq("id", id);
+      await (supabase as any).from("user_addresses").delete().eq("id", id);
       loadAddresses();
     } catch (err) {
       console.error("Failed to delete address:", err);
