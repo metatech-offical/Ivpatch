@@ -19,17 +19,17 @@ export default function AffiliatesSection() {
         </div>
 
         {/* Testimonial Content - Styled to match screenshot */}
-        <div className="w-full md:w-[55%] flex flex-col justify-center px-8 md:px-14 py-12 md:py-0 gap-6 md:gap-[24px] order-1 md:order-2">
-          <h4 className="font-['Satoshi:Medium',sans-serif] leading-[1.1] text-[44px] sm:text-[54px] md:text-[72px] text-white tracking-[-0.02em]">
+        <div className="w-full md:w-[55%] flex flex-col justify-center items-center md:items-start text-center md:text-left px-8 md:px-14 py-12 md:py-0 gap-6 md:gap-[24px] order-1 md:order-2">
+          <h4 className="font-['Satoshi:Medium',sans-serif] leading-[1.1] text-[36px] sm:text-[54px] md:text-[72px] text-white tracking-[-0.02em]">
             My New <br className="hidden md:block" /> Daily Fix
           </h4>
-          <div className="font-['Satoshi:Regular',sans-serif] text-[16px] md:text-[18px] text-white/80 leading-relaxed max-w-[460px]">
+          <div className="font-['Satoshi:Regular',sans-serif] text-[15px] md:text-[18px] text-white/80 leading-relaxed max-w-[460px] mx-auto md:mx-0">
             <p>
               I wanted something simple, effective, and easy to stay consistent with without adding another complicated step to my routine.
               These patches fit seamlessly into my day, delivering exactly what my body needs, exactly when I need it.
             </p>
           </div>
-          <div className="font-['Satoshi:Medium',sans-serif] text-[18px] md:text-[22px] text-white tracking-[-0.01em]">
+          <div className="font-['Satoshi:Medium',sans-serif] text-[17px] md:text-[22px] text-white tracking-[-0.01em]">
             <p>Michelle Ray</p>
           </div>
         </div>
