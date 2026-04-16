@@ -38,16 +38,16 @@ export default function WellnessSection() {
               src="/model-with-patch.svg"
             />
             {/* Feature Floating Badge */}
-            <div className="absolute bottom-6 left-6 right-6 md:right-auto md:w-[280px] bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-[12px] shadow-2xl">
-              <div className="flex items-center gap-3 mb-2">
+            <div className="absolute bottom-6 left-6 w-[137px] h-[48px] md:w-[280px] md:h-auto bg-white/10 backdrop-blur-xl border border-white/20 p-2 md:p-5 rounded-[12px] shadow-2xl flex flex-col justify-center">
+              <div className="flex items-center gap-2 md:gap-3 md:mb-2">
                 <img
                   src="/headline.svg"
-                  className="w-5 h-5"
+                  className="w-[14px] h-[14px] md:w-5 md:h-5"
                   alt=""
                 />
-                <span className="text-white font-['Satoshi:Medium_Italic',sans-serif] text-lg">Proven Effectiveness</span>
+                <span className="text-white font-['Satoshi:Medium_Italic',sans-serif] text-[10px] md:text-lg whitespace-nowrap">Proven Effectiveness</span>
               </div>
-              <p className="text-white/70 text-xs font-['Satoshi:Regular',sans-serif] leading-tight">
+              <p className="hidden md:block text-white/70 text-xs font-['Satoshi:Regular',sans-serif] leading-tight">
                 Every product is carefully crafted to meet the highest quality standards
               </p>
             </div>

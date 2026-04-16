@@ -7,13 +7,13 @@ export default function RangeSection() {
   const [activeCardIndex, setActiveCardIndex] = useState<number | null>(null);
 
   const products = [
-    { name: "Collagen Formula", img: "/brown.svg", mobileImg: "/mobile-1.svg" },
-    { name: "Muscle Fuel", img: "/red.svg", mobileImg: "/mobile-2.svg" },
-    { name: "Energy Release", img: "/green.svg", mobileImg: "/mobile-3.svg" },
-    { name: "Immunity", img: "/yellow.svg", mobileImg: "/mobile-4.svg" },
-    { name: "ED", img: "/blue.svg", mobileImg: "/mobile-5.svg" },
-    { name: "NMN-NAD+", img: "/black.svg", mobileImg: "/mobile-6.svg" },
-    { name: "Neuro", img: "/lemon.svg", mobileImg: "/mobile-7.svg" },
+    { name: "Collagen Formula", img: "/desktop-4.svg", mobileImg: "/mobile-1.svg" },
+    { name: "Muscle Fuel", img: "/desktop-2.svg", mobileImg: "/mobile-2.svg" },
+    { name: "Energy Release", img: "/desktop-1.svg", mobileImg: "/mobile-3.svg" },
+    { name: "Immunity", img: "/desktop-3.svg", mobileImg: "/mobile-4.svg" },
+    { name: "ED", img: "/desktop-5.svg", mobileImg: "/mobile-5.svg" },
+    { name: "NMN-NAD+", img: "/desktop-6.svg", mobileImg: "/mobile-6.svg" },
+    { name: "Neuro", img: "/desktop-7.svg", mobileImg: "/mobile-7.svg" },
   ];
 
   const handleCardClick = (index: number) => {
@@ -21,7 +21,7 @@ export default function RangeSection() {
   };
 
   const CardContent = ({ product, isActive, index }: { product: typeof products[0], isActive: boolean, index: number }) => (
-    <div 
+    <div
       className={`relative w-full h-full overflow-hidden rounded-[16px] group cursor-pointer ${isActive ? 'active-mobile' : ''}`}
       onClick={() => handleCardClick(index)}
     >
@@ -59,7 +59,7 @@ export default function RangeSection() {
 
   return (
     <section
-      className="bg-white py-12 md:py-16 px-4 md:px-10 rounded-[16px] w-full max-w-[1252px]"
+      className="bg-white pt-12 pb-4 md:py-16 px-5 md:px-10 rounded-[16px] w-full max-w-[1252px] mx-auto overflow-hidden"
       data-name="Range Section"
     >
       <div className="flex flex-col gap-10 md:gap-12 items-center">
@@ -76,40 +76,54 @@ export default function RangeSection() {
         {/* Desktop Product Grid (Unchanged Layout) */}
         <div className="hidden md:flex w-full flex-col gap-5">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="bg-[#cfcfcf] h-[398px]"><CardContent product={products[2]} isActive={false} index={2} /></div>
-            <div className="bg-[#cfcfcf] h-[398px]"><CardContent product={products[1]} isActive={false} index={1} /></div>
+            <div className="bg-[#cfcfcf] h-[398px] rounded-[16px] overflow-hidden"><CardContent product={products[2]} isActive={false} index={2} /></div>
+            <div className="bg-[#cfcfcf] h-[398px] rounded-[16px] overflow-hidden"><CardContent product={products[1]} isActive={false} index={1} /></div>
             <div className="flex flex-col gap-5 md:col-span-2">
-              <div className="bg-[#cfcfcf] h-[190px]"><CardContent product={products[3]} isActive={false} index={3} /></div>
-              <div className="bg-[#cfcfcf] h-[190px]"><CardContent product={products[0]} isActive={false} index={0} /></div>
+              <div className="bg-[#cfcfcf] h-[190px] rounded-[16px] overflow-hidden"><CardContent product={products[3]} isActive={false} index={3} /></div>
+              <div className="bg-[#cfcfcf] h-[190px] rounded-[16px] overflow-hidden"><CardContent product={products[0]} isActive={false} index={0} /></div>
             </div>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
-            <div className="bg-[#cfcfcf] h-[220px]"><CardContent product={products[6]} isActive={false} index={6} /></div>
-            <div className="bg-[#cfcfcf] h-[220px]"><CardContent product={products[4]} isActive={false} index={4} /></div>
-            <div className="bg-[#cfcfcf] h-[220px]"><CardContent product={products[5]} isActive={false} index={5} /></div>
+            <div className="bg-[#cfcfcf] h-[220px] rounded-[16px] overflow-hidden"><CardContent product={products[6]} isActive={false} index={6} /></div>
+            <div className="bg-[#cfcfcf] h-[220px] rounded-[16px] overflow-hidden"><CardContent product={products[4]} isActive={false} index={4} /></div>
+            <div className="bg-[#cfcfcf] h-[220px] rounded-[16px] overflow-hidden"><CardContent product={products[5]} isActive={false} index={5} /></div>
           </div>
         </div>
 
-        {/* Mobile Product Grid (Pixel Perfect asymmetric layout) */}
-        <div className="md:hidden flex flex-col gap-4 w-full">
-          {/* Row 1: wide-l (3:2 split) */}
-          <div className="grid grid-cols-5 gap-3">
-            <div className="col-span-3 h-[280px]"><CardContent product={products[0]} isActive={activeCardIndex === 0} index={0} /></div>
-            <div className="col-span-2 h-[280px]"><CardContent product={products[1]} isActive={activeCardIndex === 1} index={1} /></div>
-          </div>
-          {/* Row 2: small-l (2:3 split) */}
-          <div className="grid grid-cols-5 gap-3">
-            <div className="col-span-2 h-[230px]"><CardContent product={products[2]} isActive={activeCardIndex === 2} index={2} /></div>
-            <div className="col-span-3 h-[230px]"><CardContent product={products[3]} isActive={activeCardIndex === 3} index={3} /></div>
-          </div>
-          {/* Row 3: two equals */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="h-[230px]"><CardContent product={products[4]} isActive={activeCardIndex === 4} index={4} /></div>
-            <div className="h-[230px]"><CardContent product={products[5]} isActive={activeCardIndex === 5} index={5} /></div>
-          </div>
-          {/* Row 4: full width */}
-          <div className="w-full h-[210px]">
-            <CardContent product={products[6]} isActive={activeCardIndex === 6} index={6} />
+        {/* Mobile Product Grid (Pixel Perfect exact dimensions with responsive scaling and padding) */}
+        <div className="md:hidden w-full flex justify-center py-2">
+          <div className="flex flex-col items-center gap-[10px] w-max scale-[0.8] min-[375px]:scale-[0.85] min-[414px]:scale-[0.95] min-[440px]:scale-100 origin-top">
+            {/* Row 1 */}
+            <div className="flex gap-[8px] justify-center">
+              <div className="w-[230px] h-[170px] shrink-0">
+                <CardContent product={products[0]} isActive={activeCardIndex === 0} index={0} />
+              </div>
+              <div className="w-[138px] h-[170px] shrink-0">
+                <CardContent product={products[1]} isActive={activeCardIndex === 1} index={1} />
+              </div>
+            </div>
+            {/* Row 2 */}
+            <div className="flex gap-[8px] justify-center">
+              <div className="w-[138px] h-[175px] shrink-0">
+                <CardContent product={products[2]} isActive={activeCardIndex === 2} index={2} />
+              </div>
+              <div className="w-[230px] h-[175px] shrink-0">
+                <CardContent product={products[3]} isActive={activeCardIndex === 3} index={3} />
+              </div>
+            </div>
+            {/* Row 3 */}
+            <div className="flex gap-[8px] justify-center">
+              <div className="w-[184px] h-[162px] shrink-0">
+                <CardContent product={products[4]} isActive={activeCardIndex === 4} index={4} />
+              </div>
+              <div className="w-[184px] h-[162px] shrink-0">
+                <CardContent product={products[5]} isActive={activeCardIndex === 5} index={5} />
+              </div>
+            </div>
+            {/* Row 4 */}
+            <div className="w-[376px] h-[190px] shrink-0">
+              <CardContent product={products[6]} isActive={activeCardIndex === 6} index={6} />
+            </div>
           </div>
         </div>
       </div>
