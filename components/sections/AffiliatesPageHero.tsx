@@ -1,6 +1,15 @@
+"use client";
+
 import Image from "next/image";
 
 export default function AffiliatesPageHero() {
+  const handleScrollToForm = () => {
+    const section = document.getElementById("become-affiliate");
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <section
       className="w-full max-w-[1252px] h-[750px] md:h-[624px] relative rounded-[16px] overflow-hidden bg-[#1B2551]"
@@ -14,7 +23,7 @@ export default function AffiliatesPageHero() {
         className="object-cover absolute inset-0 z-0"
         priority
       />
-      
+
       {/* Subtle Mobile Gradient Overlay */}
       <div className="md:hidden absolute inset-0 bg-gradient-to-b from-[#1B2551]/20 via-transparent to-transparent z-1" />
 
@@ -37,8 +46,11 @@ export default function AffiliatesPageHero() {
         <p className="font-['Satoshi:Medium',sans-serif] font-medium text-[15px] md:text-[22px] text-white/80 md:text-white/70 leading-[1.4] max-w-[320px] md:max-w-[450px]">
           Join IVPatch and share a smarter way to live well, while earning along the way.
         </p>
-        <div className="mt-2">
-          <button className="bg-white text-black font-['Satoshi:Bold',sans-serif] font-bold text-[18px] md:text-[24px] px-8 md:w-[171px] py-3 md:h-[52px] rounded-[16px] flex items-center justify-center hover:bg-white/90 transition-all shadow-lg active:scale-95">
+        <div className="mt-2 text-center md:text-left">
+          <button 
+            onClick={handleScrollToForm}
+            className="bg-white text-black font-['Satoshi:Bold',sans-serif] font-bold text-[18px] md:text-[24px] w-[160px] md:w-[171px] h-[48px] md:h-[52px] rounded-[16px] flex items-center justify-center hover:bg-white/90 transition-all shadow-lg active:scale-95 whitespace-nowrap px-4 md:px-0"
+          >
             Apply Now
           </button>
         </div>

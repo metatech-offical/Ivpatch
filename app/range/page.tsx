@@ -3,6 +3,7 @@ import Footer from "@/components/layout/Footer";
 import RangeProductsGrid from "@/components/sections/range/RangeProductsGrid";
 import NewsletterSection from "@/components/sections/NewsletterSection";
 import SocialsSection from "@/components/sections/SocialsSection";
+import Link from "next/link";
 
 const SPOTLIGHT_IMAGE = "/range-black-box.svg";
 
@@ -58,9 +59,12 @@ export default function RangePage() {
             <h3 className="mt-4 text-white text-[32px] md:text-[40px] font-['Satoshi:Bold',sans-serif] leading-tight tracking-[-1px]">
               Where care meets comfort
             </h3>
-            <button className="mt-10 mx-auto bg-white w-[140px] md:w-[163px] h-[48px] md:h-[52px] flex items-center justify-center rounded-[16px] text-[#1A1A1A] text-[18px] md:text-[24px] font-['Satoshi:Bold',sans-serif] shadow-lg transition-transform hover:scale-105 active:scale-95">
+            <Link 
+              href="#products"
+              className="mt-10 mx-auto bg-white w-[140px] md:w-[163px] h-[48px] md:h-[52px] flex items-center justify-center rounded-[16px] text-[#1A1A1A] text-[18px] md:text-[24px] font-['Satoshi:Bold',sans-serif] shadow-lg transition-transform hover:scale-105 active:scale-95"
+            >
               Shop Now
-            </button>
+            </Link>
           </div>
 
           {/* Product Spotlight Pill */}

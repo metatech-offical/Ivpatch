@@ -56,23 +56,31 @@ export default function AffiliatesStepsSection() {
             <div
               key={card.id}
               onClick={() => toggleCard(card.id)}
-              className="relative w-full max-w-[381px] aspect-[16/9] md:h-[220px] rounded-[24px] overflow-hidden group cursor-pointer shrink-0 border border-gray-100 bg-[#190F0D]"
+              className="relative w-full max-w-[381px] aspect-[16/9] md:h-[220px] rounded-[24px] overflow-hidden group cursor-pointer shrink-0 border border-black/5 bg-white"
             >
-              {/* Base Image (Hidden when active on mobile, or on hover on desktop) */}
-              <Image
-                src={card.image}
-                alt={card.alt}
-                fill
-                className={`object-cover transition-opacity duration-300 ease-in-out ${isActive ? 'opacity-0' : 'opacity-100 md:group-hover:opacity-0'}`}
-              />
+              {/* Base Image */}
+              <div 
+                className={`absolute inset-0 transition-opacity duration-300 ease-in-out z-10 ${isActive ? 'opacity-0' : 'opacity-100 md:group-hover:opacity-0'}`}
+              >
+                <Image
+                  src={card.image}
+                  alt={card.alt}
+                  fill
+                  className="object-cover"
+                />
+              </div>
 
-              {/* Second/Hover Image (Visible when active on mobile, or on hover on desktop) */}
-              <Image
-                src={card.hoverImage}
-                alt={`${card.alt} Hover`}
-                fill
-                className={`object-cover transition-opacity duration-300 ease-in-out absolute inset-0 ${isActive ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
-              />
+              {/* Hover/Active Image */}
+              <div 
+                className={`absolute inset-0 transition-opacity duration-300 ease-in-out z-20 ${isActive ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}
+              >
+                <Image
+                  src={card.hoverImage}
+                  alt={`${card.alt} Hover`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
             </div>
           );
         })}

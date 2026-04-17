@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function MissionBenefitsStrip() {
   const thumbnails = [
     "/white-box.svg",
@@ -22,25 +24,28 @@ export default function MissionBenefitsStrip() {
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6">
         <div className="flex flex-col items-center gap-3 text-center max-w-[580px]">
           <span
-            className="text-[22px] font-['Satoshi:Medium',sans-serif] text-white/70"
+            className="text-[18px] md:text-[22px] font-['Satoshi:Medium',sans-serif] text-white/70"
           >
             Benefits that add up
           </span>
           <h1
-            className="text-[40px] leading-tight text-white font-['Satoshi:Bold',sans-serif] tracking-[-0.8px]"
+            className="text-[30px] md:text-[40px] leading-tight text-white font-['Satoshi:Bold',sans-serif] tracking-[-0.8px]"
           >
-            Crafted for busy lives<br /> and health-conscious minds.
+            Crafted for busy lives<br className="hidden md:block" /> and health-conscious minds.
           </h1>
         </div>
 
         {/* Shop Now button */}
-        <button className="bg-white border border-black/15 px-10 py-3.5 rounded-[16px] cursor-pointer hover:bg-white/90 transition-all active:scale-95 shadow-xl">
+        <Link 
+          href="/range#products"
+          className="bg-white border border-black/15 px-8 md:px-10 py-3 md:py-3.5 rounded-[16px] cursor-pointer hover:bg-white/90 transition-all active:scale-95 shadow-xl inline-flex items-center justify-center"
+        >
           <span
-            className="text-[24px] text-[#1A1A1A] font-['Satoshi:Bold',sans-serif] tracking-[0.48px] whitespace-nowrap"
+            className="text-[18px] md:text-[24px] text-[#1A1A1A] font-['Satoshi:Bold',sans-serif] tracking-[0.48px] whitespace-nowrap"
           >
             Shop Now
           </span>
-        </button>
+        </Link>
       </div>
 
       {/* Product thumbnails - Adjusted for mobile */}

@@ -9,7 +9,7 @@ export default function RangeSection() {
   const products = [
     { name: "Collagen Formula", img: "/desktop-4.svg", mobileImg: "/mobile-1.svg" },
     { name: "Muscle Fuel", img: "/desktop-2.svg", mobileImg: "/mobile-2.svg" },
-    { name: "Energy Release", img: "/desktop-1.svg", mobileImg: "/mobile-3.svg" },
+    { name: "ER", img: "/desktop-1.svg", mobileImg: "/mobile-3.svg" },
     { name: "Immunity", img: "/desktop-3.svg", mobileImg: "/mobile-4.svg" },
     { name: "ED", img: "/desktop-5.svg", mobileImg: "/mobile-5.svg" },
     { name: "NMN-NAD+", img: "/desktop-6.svg", mobileImg: "/mobile-6.svg" },
@@ -41,8 +41,8 @@ export default function RangeSection() {
       </Link>
 
       {/* Product Name Box - Top Right */}
-      <div className={`absolute top-4 right-4 min-w-[106px] w-fit h-[48px] bg-black/40 backdrop-blur-md rounded-[10px] flex items-center justify-center transition-opacity duration-300 pointer-events-none px-4 md:opacity-0 md:group-hover:opacity-100 ${isActive ? 'opacity-100' : 'opacity-0'}`}>
-        <span className="text-white text-[16px] md:text-[20px] font-['Satoshi:Medium',sans-serif] whitespace-nowrap leading-none">
+      <div className={`absolute top-3 md:top-4 right-3 md:right-4 min-w-[106px] w-fit h-[40px] md:h-[48px] bg-black/40 backdrop-blur-md rounded-[10px] flex items-center justify-center transition-opacity duration-300 pointer-events-none px-4 md:opacity-0 md:group-hover:opacity-100 ${isActive ? 'opacity-100' : 'opacity-0'}`}>
+        <span className="text-white text-[13px] md:text-[20px] font-['Satoshi:Medium',sans-serif] whitespace-nowrap leading-none">
           {product.name}
         </span>
       </div>
@@ -50,9 +50,9 @@ export default function RangeSection() {
       {/* Buy Now Button - Bottom Right */}
       <Link
         href="/range#products"
-        className={`absolute bottom-4 right-4 w-[110px] md:w-[138px] h-[38px] md:h-[44px] bg-white/90 backdrop-blur-sm rounded-[10px] flex items-center justify-center z-10 hover:bg-white transition-all shadow-sm md:opacity-0 md:group-hover:opacity-100 ${isActive ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute bottom-3 md:bottom-4 right-3 md:right-4 w-[100px] md:w-[138px] h-[34px] md:h-[44px] bg-white/90 backdrop-blur-sm rounded-[10px] flex items-center justify-center z-10 hover:bg-white transition-all shadow-sm md:opacity-0 md:group-hover:opacity-100 ${isActive ? 'opacity-100' : 'opacity-0'}`}
       >
-        <span className="text-black text-[16px] md:text-[20px] font-['Satoshi:Medium',sans-serif]">Buy Now</span>
+        <span className="text-black text-[13px] md:text-[20px] font-['Satoshi:Medium',sans-serif]">Buy Now</span>
       </Link>
     </div>
   );

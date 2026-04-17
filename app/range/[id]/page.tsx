@@ -49,6 +49,7 @@ export default function ProductDetailPage() {
   const slug = (params.id as string) || "neuro-boost";
   const fallback = getFallback(slug);
 
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [product, setProduct] = useState(fallback);
   const [relatedProducts, setRelatedProducts] = useState<Array<{
     id: string; product_id: string; name: string; price: string; image: string; bg: string;
@@ -69,6 +70,7 @@ export default function ProductDetailPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Reset to this slug's fallback immediately, then load from DB
+    setIsDataLoading(true);
     const fb = getFallback(slug);
     setProduct(fb);
     setSelectedImage(fb.images[2] || fb.images[0]);
@@ -134,6 +136,8 @@ export default function ProductDetailPage() {
       clearTimeout(timeoutId);
       console.error("Failed to load product:", err);
       // Keep fallback which was already set
+    } finally {
+      setIsDataLoading(false);
     }
   };
 
@@ -279,25 +283,36 @@ export default function ProductDetailPage() {
             className="w-full lg:w-[618px] h-[400px] md:h-[600px] lg:h-[835px] rounded-[30.51px] relative overflow-hidden flex flex-col items-center justify-center shadow-sm"
             style={{ backgroundColor: product.color === "#ffffff" ? "#ECEBE3" : product.color }}
           >
-            <div className="w-full h-full p-0 flex items-center justify-center">
-              <img
-                src={selectedImage}
-                alt={product.name}
-                className="w-full h-full object-cover transition-all duration-500 transform"
-              />
+            <div className="w-full h-full p-0 flex items-center justify-center relative">
+              {isDataLoading ? (
+                <div className="absolute inset-0 bg-black/5 animate-pulse" />
+              ) : (
+                <img
+                  src={selectedImage}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-all duration-500 transform"
+                />
+              )}
             </div>
 
             {/* Thumbnails (White BG & Color BG) */}
             <div className="absolute bottom-[20px] md:bottom-[30px] flex gap-[12px] md:gap-[20px] z-10 px-4">
-              {[product.images[0], product.images[1]].filter(Boolean).map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(img)}
-                  className={`w-[100px] md:w-[150px] lg:w-[172.82px] h-[60px] md:h-[90px] lg:h-[110.06px] rounded-[14.55px] overflow-hidden border-2 transition-all flex items-center justify-center p-0 bg-white/20 backdrop-blur-md shadow-lg ${selectedImage === img ? 'border-[#FFFFFF] scale-105' : 'border-transparent opacity-70 hover:opacity-100'}`}
-                >
-                  <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
-                </button>
-              ))}
+              {isDataLoading ? (
+                <>
+                  <div className="w-[100px] md:w-[150px] lg:w-[172.82px] h-[60px] md:h-[90px] lg:h-[110.06px] rounded-[14.55px] bg-white/20 backdrop-blur-md animate-pulse" />
+                  <div className="w-[100px] md:w-[150px] lg:w-[172.82px] h-[60px] md:h-[90px] lg:h-[110.06px] rounded-[14.55px] bg-white/20 backdrop-blur-md animate-pulse" />
+                </>
+              ) : (
+                [product.images[0], product.images[1]].filter(Boolean).map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(img)}
+                    className={`w-[100px] md:w-[150px] lg:w-[172.82px] h-[60px] md:h-[90px] lg:h-[110.06px] rounded-[14.55px] overflow-hidden border-2 transition-all flex items-center justify-center p-0 bg-white/20 backdrop-blur-md shadow-lg ${selectedImage === img ? 'border-[#FFFFFF] scale-105' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                  >
+                    <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                  </button>
+                ))
+              )}
             </div>
           </div>
 

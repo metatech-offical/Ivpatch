@@ -3,6 +3,7 @@ import Image from "next/image";
 export default function AffiliatesFormSection() {
   return (
     <section
+      id="become-affiliate"
       className="bg-[#E3E4DF] rounded-[16px] w-full max-w-[1252px] h-auto md:h-[697px] shrink-0 relative overflow-hidden flex flex-col md:flex-row items-center md:pr-[60px] pb-12 md:pb-0"
       data-name="Affiliates Form Section"
     >

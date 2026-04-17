@@ -85,10 +85,10 @@ export default function RangeProductsGrid() {
     }
   };
 
-  const handleApplySort = () => {
+  const handleApplySort = async () => {
     const sortKey = sortMap[selectedSort] || "relevance";
-    loadProducts(sortKey);
     setIsSortOpen(false);
+    await loadProducts(sortKey);
   };
 
   return (
@@ -115,50 +115,52 @@ export default function RangeProductsGrid() {
             >
               <path d="M6 9l6 6 6-6" />
             </svg>
-            <span>Sort</span>
+            <span className="hidden xs:inline">Sort</span>
           </button>
         </div>
 
         {/* Sort Dropdown */}
         {isSortOpen && (
           <div
-            className="absolute top-[65px] right-0 w-[360px] bg-white/62 backdrop-blur-[20px] rounded-[16px] shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-white/40 p-6 flex flex-col gap-6 z-50 animate-in fade-in slide-in-from-top-2"
+            className="absolute top-[65px] right-0 md:right-0 w-[calc(100vw-32px)] md:w-[360px] bg-white/95 md:bg-white/62 backdrop-blur-[20px] rounded-[16px] shadow-[0_10px_30px_rgba(0,0,0,0.12)] border border-white/40 p-5 md:p-6 flex flex-col gap-6 z-50 animate-in fade-in slide-in-from-top-2"
           >
-            <p className="text-[14px] font-['Satoshi:Bold',sans-serif] text-black tracking-tight">
+            <p className="text-[14px] font-['Satoshi:Bold',sans-serif] text-black tracking-tight border-b border-black/5 pb-2">
               Sort by
             </p>
 
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 md:gap-5">
               {sortOptions.map((option) => (
                 <button
                   key={option}
                   onClick={() => setSelectedSort(option)}
-                  className="flex items-center justify-between group"
+                  className="flex items-center justify-between group py-1"
                 >
-                  <span className={`text-[18px] font-['Satoshi:Medium',sans-serif] transition-colors ${selectedSort === option ? 'text-black' : 'text-black/60 group-hover:text-black/80'}`}>
+                  <span className={`text-[16px] md:text-[18px] font-['Satoshi:Medium',sans-serif] transition-colors ${selectedSort === option ? 'text-black' : 'text-black/60 group-hover:text-black/80'}`}>
                     {option}
                   </span>
-                  <div className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-all ${selectedSort === option ? 'border-black' : 'border-black/20'}`}>
+                  <div className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] rounded-full border-2 flex items-center justify-center transition-all ${selectedSort === option ? 'border-black' : 'border-black/20'}`}>
                     {selectedSort === option && (
-                      <div className="w-[12px] h-[12px] rounded-full bg-black shadow-sm" />
+                      <div className="w-[10px] h-[10px] md:w-[12px] md:h-[12px] rounded-full bg-black shadow-sm" />
                     )}
                   </div>
                 </button>
               ))}
             </div>
 
-            <div className="flex items-center gap-4 pt-2">
-              <div className="flex-1 flex justify-center">
-                <button
-                  onClick={() => setIsSortOpen(false)}
-                  className="text-[#808080] text-[18px] font-['Satoshi:Medium',sans-serif] hover:text-black/80 transition-colors"
-                >
-                  Reset
-                </button>
-              </div>
+            <div className="flex flex-col md:flex-row items-center gap-4 pt-2">
+              <button
+                onClick={() => {
+                  setSelectedSort("Relevance");
+                  loadProducts("relevance");
+                  setIsSortOpen(false);
+                }}
+                className="w-full md:flex-1 text-[#808080] text-[16px] md:text-[18px] font-['Satoshi:Medium',sans-serif] hover:text-black/80 transition-colors py-2 md:py-0"
+              >
+                Reset
+              </button>
               <button
                 onClick={handleApplySort}
-                className="bg-white w-[227px] h-[48px] flex items-center justify-center rounded-[12px] text-black text-[18px] font-['Satoshi:Bold',sans-serif] border border-black/5 hover:bg-white/90 active:scale-95 transition-all shadow-sm"
+                className="bg-black text-white md:bg-white w-full md:w-[227px] h-[48px] flex items-center justify-center rounded-[12px] md:text-black text-[16px] md:text-[18px] font-['Satoshi:Bold',sans-serif] border border-black/5 hover:bg-black/90 md:hover:bg-white/90 active:scale-95 transition-all shadow-sm"
               >
                 Apply filters
               </button>
@@ -180,10 +182,20 @@ export default function RangeProductsGrid() {
               </div>
             </div>
           ))
-        ) : (
+        ) : products.length > 0 ? (
           products.map((product) => (
             <ProductCard key={product.id} {...product} />
           ))
+        ) : (
+          <div className="col-span-full py-[100px] flex flex-col items-center justify-center gap-4 text-center">
+            <h4 className="text-[20px] font-['Satoshi:Medium',sans-serif] text-black/60">No products found</h4>
+            <button 
+              onClick={() => loadProducts("relevance")}
+              className="text-[#A2845E] underline font-['Satoshi:Medium',sans-serif]"
+            >
+              Clear filters and try again
+            </button>
+          </div>
         )}
       </div>
     </div>
