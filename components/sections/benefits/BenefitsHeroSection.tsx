@@ -106,12 +106,12 @@ export default function BenefitsHeroSection() {
               />
             </div>
 
-            {/* Slider Handle */}
+            {/* Slider Handle Line */}
             <div
               className="absolute inset-y-0 z-20 transition-transform"
               style={{ left: `${sliderPos}%` }}
             >
-              <div className="absolute inset-0 -left-[1px] w-[2px] bg-white/50 backdrop-blur-sm shadow-[0_0_20px_rgba(255,255,255,0.8)]" />
+              <div className="absolute inset-0 -left-[2px] w-[4px] bg-white/60 backdrop-blur-sm shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <img src="/slider.svg" alt="Slider" className="w-10 h-10 md:w-14 md:h-14 drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
               </div>
