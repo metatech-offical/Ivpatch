@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<Step>("phone");
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resendTimer, setResendTimer] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
@@ -60,23 +60,39 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    // Mock OTP sending — TODO: Replace with Clerk signUp.create() when ready
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to send OTP. Please try again.");
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
       setStep("otp");
       setResendTimer(30);
-    }, 1200);
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+      setLoading(false);
+    }
   };
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) {
-      const digits = value.replace(/\D/g, "").slice(0, 4);
+      const digits = value.replace(/\D/g, "").slice(0, 6);
       const newOtp = [...otp];
       digits.split("").forEach((d, i) => {
-        if (index + i < 4) newOtp[index + i] = d;
+        if (index + i < 6) newOtp[index + i] = d;
       });
       setOtp(newOtp);
-      const nextIndex = Math.min(index + digits.length, 3);
+      const nextIndex = Math.min(index + digits.length, 5);
       otpRefs.current[nextIndex]?.focus();
       return;
     }
@@ -87,7 +103,7 @@ export default function RegisterPage() {
     newOtp[index] = value;
     setOtp(newOtp);
 
-    if (value && index < 3) {
+    if (value && index < 5) {
       otpRefs.current[index + 1]?.focus();
     }
   };
@@ -103,30 +119,55 @@ export default function RegisterPage() {
     setError("");
     const code = otp.join("");
 
-    if (code.length < 4) {
-      setError("Please enter the complete 4-digit code.");
-      return;
-    }
-
-    // Default OTP is 1234
-    if (code !== "1234") {
-      setError("Invalid OTP. Please try again.");
+    if (code.length < 6) {
+      setError("Please enter the complete 6-digit code.");
       return;
     }
 
     setLoading(true);
 
-    // Mock verify — TODO: Replace with Clerk attemptPhoneNumberVerification() when ready
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, code }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid OTP. Please try again.");
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
       setStep("details");
-    }, 1200);
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+      setLoading(false);
+    }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (resendTimer > 0) return;
-    setOtp(["", "", "", ""]);
+    setOtp(["", "", "", "", "", ""]);
+    setError("");
     setResendTimer(30);
+
+    try {
+      const res = await fetch("/api/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to resend OTP.");
+      }
+    } catch {
+      setError("Network error. Could not resend OTP.");
+    }
   };
 
   const handleDetailsSubmit = async (e: React.FormEvent) => {
@@ -156,7 +197,7 @@ export default function RegisterPage() {
       });
       setLoading(false);
       router.push("/profile");
-    }, 1200);
+    }, 600);
   };
 
   return (
@@ -215,7 +256,7 @@ export default function RegisterPage() {
                 {error && <p className="text-red-200 text-[14px] font-['Satoshi:Regular',sans-serif] w-full text-left">{error}</p>}
 
                 <button type="submit" disabled={loading}
-                  className="w-full h-[64px] bg-[#445C4F] hover:bg-[#3a5043] text-white rounded-[16px] text-[24px] md:text-[30px] font-['Satoshi:Bold',sans-serif] transition-all active:scale-[0.98] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed shadow-lg mt-4">
+                  className="w-full h-[64px] bg-[#445C4F] hover:bg-[#3a5043] text-white rounded-[16px] text-[24px] md:text-[28px] font-['Satoshi:Bold',sans-serif] transition-all active:scale-[0.98] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed shadow-lg mt-4">
                   {loading ? (
                     <div className="flex items-center gap-3">
                       <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -224,7 +265,7 @@ export default function RegisterPage() {
                       </svg>
                       Setting up…
                     </div>
-                  ) : "Continue"}
+                  ) : "Complete Registration"}
                 </button>
               </form>
             </div>
@@ -233,22 +274,27 @@ export default function RegisterPage() {
           {/* ─── Step 2: OTP Verification ─── */}
           {step === "otp" && (
             <div className="flex flex-col items-center w-full max-w-[627px]">
-              <button type="button" onClick={() => { setStep("phone"); setOtp(["", "", "", ""]); setError(""); }}
+              <button type="button" onClick={() => { setStep("phone"); setOtp(["", "", "", "", "", ""]); setError(""); }}
                 className="absolute top-6 left-8 flex items-center gap-2 text-white/80 hover:text-white text-[16px] font-['Satoshi:Regular',sans-serif] transition-colors">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
                 Go Back
               </button>
 
               <img src="/login-icon.svg" alt="Register" className="w-[100px] h-[100px] mb-6" />
-              <h1 className="text-white text-[28px] md:text-[30px] font-['Satoshi:Bold',sans-serif] mb-2 text-center">Sign in to continue</h1>
-              <p className="text-white/60 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] mb-10 text-center">Please enter the code we've just sent to your mobile</p>
+              <h1 className="text-white text-[28px] md:text-[30px] font-['Satoshi:Bold',sans-serif] mb-2 text-center">Verify your number</h1>
+              <p className="text-white/60 text-[15px] md:text-[17px] font-['Satoshi:Regular',sans-serif] mb-2 text-center">
+                We&apos;ve sent a 6-digit code to
+              </p>
+              <p className="text-white font-['Satoshi:Bold',sans-serif] text-[16px] mb-8 text-center">
+                {phone}
+              </p>
 
               <form onSubmit={handleVerifyOtp} className="w-full flex flex-col items-center gap-6">
-                <div className="flex items-center justify-center gap-[16px]">
+                <div className="flex items-center justify-center gap-[10px] md:gap-[14px]">
                   {otp.map((digit, idx) => (
-                    <input key={idx} ref={(el) => { otpRefs.current[idx] = el; }} type="text" inputMode="numeric" maxLength={4} value={digit}
+                    <input key={idx} ref={(el) => { otpRefs.current[idx] = el; }} type="text" inputMode="numeric" maxLength={6} value={digit}
                       onChange={(e) => handleOtpChange(idx, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                      className="w-[62px] h-[90px] bg-white/20 border border-white/25 rounded-[12px] text-white text-[36px] font-['Satoshi:Bold',sans-serif] text-center outline-none focus:border-white/60 focus:bg-white/25 transition-all placeholder:text-white/25"
+                      className="w-[50px] h-[72px] md:w-[58px] md:h-[84px] bg-white/20 border border-white/25 rounded-[12px] text-white text-[30px] md:text-[34px] font-['Satoshi:Bold',sans-serif] text-center outline-none focus:border-white/70 focus:bg-white/30 transition-all placeholder:text-white/25"
                       placeholder="–" />
                   ))}
                 </div>
@@ -256,7 +302,7 @@ export default function RegisterPage() {
                 {error && <p className="text-red-200 text-[14px] font-['Satoshi:Regular',sans-serif] text-center">{error}</p>}
 
                 <button type="submit" disabled={loading}
-                  className="w-full max-w-[627px] h-[64px] bg-[#445C4F] hover:bg-[#3a5043] text-white rounded-[16px] text-[24px] md:text-[30px] font-['Satoshi:Bold',sans-serif] transition-all active:scale-[0.98] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed shadow-lg mt-4">
+                  className="w-full max-w-[627px] h-[64px] bg-[#445C4F] hover:bg-[#3a5043] text-white rounded-[16px] text-[24px] md:text-[28px] font-['Satoshi:Bold',sans-serif] transition-all active:scale-[0.98] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed shadow-lg mt-4">
                   {loading ? (
                     <div className="flex items-center gap-3">
                       <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -265,11 +311,11 @@ export default function RegisterPage() {
                       </svg>
                       Verifying…
                     </div>
-                  ) : "Continue"}
+                  ) : "Verify & Continue"}
                 </button>
 
                 <div className="flex flex-col items-center gap-1 mt-2">
-                  <p className="text-white/60 text-[15px] font-['Satoshi:Regular',sans-serif]">Didn't receive OTP?</p>
+                  <p className="text-white/60 text-[15px] font-['Satoshi:Regular',sans-serif]">Didn&apos;t receive OTP?</p>
                   <button type="button" onClick={handleResend} disabled={resendTimer > 0}
                     className={`text-[16px] font-['Satoshi:Bold',sans-serif] underline underline-offset-2 transition-colors ${resendTimer > 0 ? "text-white/40 cursor-not-allowed" : "text-white hover:text-white/90 cursor-pointer"}`}>
                     {resendTimer > 0 ? `Resend Code (${resendTimer}s)` : "Resend Code"}
@@ -317,7 +363,7 @@ export default function RegisterPage() {
                       </svg>
                       Sending OTP…
                     </div>
-                  ) : "Get Otp"}
+                  ) : "Get OTP"}
                 </button>
 
                 <div className="flex items-center gap-4 w-full my-2">
