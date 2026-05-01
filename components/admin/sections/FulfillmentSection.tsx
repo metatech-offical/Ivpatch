@@ -392,7 +392,7 @@ export default function FulfillmentSection() {
             <div className="flex items-center justify-between mb-5 p-4 rounded-xl" style={{ background: "#f9fafb", border: "1px solid #eaedf0" }}>
               <div>
                 <p className="text-sm font-bold text-[#1a1a1a]" style={{ fontFamily: "Satoshi, sans-serif" }}>SMS Notifications</p>
-                <p className="text-xs text-[#888]" style={{ fontFamily: "Satoshi, sans-serif" }}>Via Twilio / local SMS gateway</p>
+                <p className="text-xs text-[#888]" style={{ fontFamily: "Satoshi, sans-serif" }}>Via Firebase / SMS gateway</p>
               </div>
               <div className="flex items-center gap-2 cursor-pointer" onClick={() => setSmsEnabled(!smsEnabled)}>
                 <div className="w-11 h-6 rounded-full flex items-center px-0.5 transition-all" style={{ background: smsEnabled ? "#10b981" : "#d1d5db" }}>

@@ -7,7 +7,19 @@ import Navbar from "@/components/layout/Navbar";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import CustomCountrySelect from "@/components/ui/CustomCountrySelect";
 import { useAuth } from "@/context/AuthContext";
+import { auth } from "@/lib/firebase";
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult,
+} from "firebase/auth";
 import "react-phone-number-input/style.css";
+
+declare global {
+  interface Window {
+    recaptchaVerifier?: RecaptchaVerifier;
+  }
+}
 
 export default function LoginPage() {
   const [phone, setPhone] = useState<string | undefined>("");
@@ -17,6 +29,8 @@ export default function LoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resendTimer, setResendTimer] = useState(0);
+  const [confirmationResult, setConfirmationResult] =
+    useState<ConfirmationResult | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const { loginWithPhone } = useAuth();
@@ -36,6 +50,22 @@ export default function LoginPage() {
     }
   }, [otpSent]);
 
+  // Initialize invisible reCAPTCHA verifier
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: () => {
+            // reCAPTCHA solved — OTP will be sent
+          },
+        }
+      );
+    }
+  };
+
   const handleGetOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -53,25 +83,23 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/otp/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Failed to send OTP. Please try again.");
-        setLoading(false);
-        return;
-      }
-
+      setupRecaptcha();
+      const appVerifier = window.recaptchaVerifier!;
+      const result = await signInWithPhoneNumber(auth, phone, appVerifier);
+      setConfirmationResult(result);
       setLoading(false);
       setOtpSent(true);
       setResendTimer(30);
-    } catch {
-      setError("Network error. Please check your connection and try again.");
+    } catch (err: unknown) {
+      console.error("OTP send error:", err);
+      // Reset reCAPTCHA on failure so user can retry
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = undefined;
+      }
+      const message =
+        err instanceof Error ? err.message : "Failed to send OTP.";
+      setError(message);
       setLoading(false);
     }
   };
@@ -116,27 +144,23 @@ export default function LoginPage() {
       return;
     }
 
+    if (!confirmationResult) {
+      setError("Session expired. Please request a new OTP.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await fetch("/api/otp/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, code }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Invalid OTP. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      loginWithPhone(phone || "");
+      const userCredential = await confirmationResult.confirm(code);
+      const firebaseUser = userCredential.user;
+      loginWithPhone(firebaseUser.phoneNumber || phone || "", firebaseUser.uid);
       router.push("/");
-    } catch {
-      setError("Network error. Please check your connection and try again.");
+    } catch (err: unknown) {
+      console.error("OTP verify error:", err);
+      const message =
+        err instanceof Error ? err.message : "Invalid OTP. Please try again.";
+      setError(message);
       setLoading(false);
     }
   };
@@ -145,25 +169,36 @@ export default function LoginPage() {
     if (resendTimer > 0) return;
     setOtp(["", "", "", "", "", ""]);
     setError("");
+
+    // Clear old verifier and re-initialize
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+      window.recaptchaVerifier = undefined;
+    }
+
     setResendTimer(30);
+    setLoading(true);
 
     try {
-      const res = await fetch("/api/otp/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Failed to resend OTP.");
-      }
-    } catch {
-      setError("Network error. Could not resend OTP.");
+      setupRecaptcha();
+      const appVerifier = window.recaptchaVerifier!;
+      const result = await signInWithPhoneNumber(auth, phone!, appVerifier);
+      setConfirmationResult(result);
+    } catch (err: unknown) {
+      console.error("Resend OTP error:", err);
+      const message =
+        err instanceof Error ? err.message : "Failed to resend OTP.";
+      setError(message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <main className="bg-[#f2f2f2] min-h-screen p-[20px] md:p-[22px]">
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container" />
+
       <div className="max-w-[1252px] mx-auto flex flex-col gap-6 items-center">
         <Navbar />
 
@@ -246,7 +281,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={handleResend}
-                    disabled={resendTimer > 0}
+                    disabled={resendTimer > 0 || loading}
                     className={`text-[16px] font-['Satoshi:Bold',sans-serif] underline underline-offset-2 transition-colors ${
                       resendTimer > 0 ? "text-white/40 cursor-not-allowed" : "text-white hover:text-white/90 cursor-pointer"
                     }`}
