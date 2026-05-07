@@ -16,6 +16,7 @@ type AuthContextType = {
   user: User | null;
   firebaseUser: FirebaseUser | null;
   loginWithPhone: (phone: string, uid: string) => void;
+  loginWithSocial: (fbUser: FirebaseUser) => void;
   loginAdmin: (email: string, password: string) => boolean;
   registerUser: (data: {
     phone: string;
@@ -122,6 +123,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Called after successful Google/Apple sign-in via Firebase popup
+  const loginWithSocial = useCallback((fbUser: FirebaseUser) => {
+    const newUser: User = {
+      id: fbUser.uid,
+      name: fbUser.displayName || "User",
+      email: fbUser.email || "",
+      phone: fbUser.phoneNumber || "",
+      role: "customer",
+    };
+    setUser(newUser);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("iv-patch-user", JSON.stringify(newUser));
+    }
+  }, []);
+
   // Admin login with email/password (not Firebase — local only)
   const loginAdmin = useCallback((email: string, password: string): boolean => {
     if (email === "admin@ivpatch.com" && password === "admin@123") {
@@ -187,6 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         firebaseUser,
         loginWithPhone,
+        loginWithSocial,
         loginAdmin,
         registerUser,
         logout,
