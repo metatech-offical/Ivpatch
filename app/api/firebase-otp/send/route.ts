@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Force dynamic so Next.js never statically pre-renders this route during build
+export const dynamic = "force-dynamic";
+
 // Shared OTP store (survives Next.js hot-reloads in dev)
 declare global {
   // eslint-disable-next-line no-var

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth } from "@/lib/firebase-admin";
+import { getAdminAuth } from "@/lib/firebase-admin";
+
+// Force dynamic so Next.js never statically pre-renders this route during build
+export const dynamic = "force-dynamic";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -37,17 +40,17 @@ export async function POST(req: NextRequest) {
     // Get or create the Firebase Auth user for this phone number
     let uid: string;
     try {
-      const existingUser = await adminAuth.getUserByPhoneNumber(phone);
+      const existingUser = await getAdminAuth().getUserByPhoneNumber(phone);
       uid = existingUser.uid;
     } catch {
       // User doesn't exist yet — create them
-      const newUser = await adminAuth.createUser({ phoneNumber: phone });
+      const newUser = await getAdminAuth().createUser({ phoneNumber: phone });
       uid = newUser.uid;
     }
 
     // Create a Firebase custom token for this UID
     // The client will use signInWithCustomToken() to create a real Firebase session
-    const customToken = await adminAuth.createCustomToken(uid);
+    const customToken = await getAdminAuth().createCustomToken(uid);
 
     return NextResponse.json({ success: true, customToken });
   } catch (err: unknown) {

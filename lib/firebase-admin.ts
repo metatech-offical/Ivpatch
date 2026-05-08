@@ -40,6 +40,12 @@ function getAdminApp(): admin.app.App {
   });
 }
 
-const app = getAdminApp();
-export const adminAuth = app.auth();
+// ─── Lazy accessor ────────────────────────────────────────────────────────────
+// Do NOT call getAdminApp() at module-load time — that causes Vercel's build
+// phase to execute it while env vars are absent, crashing the build.
+// Instead export a getter so the SDK only initialises on the first real request.
+export function getAdminAuth(): admin.auth.Auth {
+  return getAdminApp().auth();
+}
+
 export default admin;
