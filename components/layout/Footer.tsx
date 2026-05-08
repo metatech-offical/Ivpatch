@@ -40,7 +40,7 @@ export default function Footer() {
             Shop
           </h4>
           <div className="flex flex-col gap-3 text-[16px] md:text-[18px] text-[#B2B2B2] font-['Satoshi:Medium',sans-serif]">
-            <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Patches</span></ComingSoonTooltip>
+            <Link href="/range" className="hover:text-white transition-colors">Patches</Link>
             <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Bundles</span></ComingSoonTooltip>
             <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Subscriptions</span></ComingSoonTooltip>
           </div>
@@ -52,8 +52,7 @@ export default function Footer() {
             About
           </h4>
           <div className="flex flex-col gap-3 text-[16px] md:text-[18px] text-[#B2B2B2] font-['Satoshi:Medium',sans-serif]">
-            <Link href="/about-us" className="hover:text-white transition-colors">About Us</Link>
-            <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Track my order</span></ComingSoonTooltip>
+            <Link href="/our-mission" className="hover:text-white transition-colors">Our Mission</Link>
             <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Refunds</span></ComingSoonTooltip>
           </div>
         </div>
@@ -64,6 +63,7 @@ export default function Footer() {
             Learn
           </h4>
           <div className="flex flex-col gap-3 text-[16px] md:text-[18px] text-[#B2B2B2] font-['Satoshi:Medium',sans-serif]">
+            <Link href="/benefits" className="hover:text-white transition-colors">Benefits</Link>
             <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Ingredients</span></ComingSoonTooltip>
             <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">The science</span></ComingSoonTooltip>
             <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Authentication</span></ComingSoonTooltip>
@@ -79,7 +79,7 @@ export default function Footer() {
             Contact
           </h4>
           <div className="flex flex-col gap-3 text-[16px] md:text-[18px] text-[#B2B2B2] font-['Satoshi:Medium',sans-serif]">
-            <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">My account</span></ComingSoonTooltip>
+            <Link href="/profile" className="hover:text-white transition-colors">My account</Link>
             <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Track my order</span></ComingSoonTooltip>
             <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Refunds</span></ComingSoonTooltip>
             <ComingSoonTooltip><span className="hover:text-white transition-colors cursor-pointer">Contact us</span></ComingSoonTooltip>
