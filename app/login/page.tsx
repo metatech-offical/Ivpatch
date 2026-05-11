@@ -50,23 +50,36 @@ export default function LoginPage() {
   const verifierRef = useRef<RecaptchaVerifier | null>(null);
 
   const getVerifier = useCallback(() => {
-    if (verifierRef.current) return verifierRef.current;
+    // If verifier exists, check if it's still attached to the DOM
+    if (verifierRef.current) {
+      const el = document.getElementById("recaptcha-container-login");
+      if (el && el.children.length > 0) return verifierRef.current;
+      // If container is empty, the verifier might have been cleared
+      try { verifierRef.current.clear(); } catch {}
+      verifierRef.current = null;
+    }
     
-    // Use the element from the DOM (defined in the JSX below)
     const container = document.getElementById("recaptcha-container-login");
     if (!container) return null;
 
-    const verifier = new RecaptchaVerifier(auth, container, {
-      size: "invisible",
-      callback: () => {
-        // reCAPTCHA solved
-      },
-      "expired-callback": () => {
-        setError("reCAPTCHA expired. Please try again.");
-      }
-    });
-    verifierRef.current = verifier;
-    return verifier;
+    try {
+      const verifier = new RecaptchaVerifier(auth, container, {
+        size: "invisible",
+        callback: () => { console.log("reCAPTCHA solved"); },
+        "expired-callback": () => {
+          setError("reCAPTCHA expired. Please try again.");
+          if (verifierRef.current) {
+            verifierRef.current.clear();
+            verifierRef.current = null;
+          }
+        }
+      });
+      verifierRef.current = verifier;
+      return verifier;
+    } catch (err) {
+      console.error("Failed to create RecaptchaVerifier:", err);
+      return null;
+    }
   }, []);
 
   // ─── Send OTP ─────────────────────────────────────────────────────────────
@@ -104,24 +117,45 @@ export default function LoginPage() {
     } else {
       // ── Production: Firebase Phone Auth (real SMS via Firebase) ──
       try {
-        if (!auth.app) {
-          throw new Error("Firebase is not initialized. Please check your API keys in Vercel settings.");
+        if (!auth.app || !auth.config?.apiKey) {
+          throw new Error("Firebase configuration is missing. Please ensure all NEXT_PUBLIC_FIREBASE_* variables are set in Vercel.");
         }
+        
         const verifier = getVerifier();
-        if (!verifier) throw new Error("reCAPTCHA container not found.");
+        if (!verifier) throw new Error("reCAPTCHA system failed to initialize. Please refresh and try again.");
+
+        // Manually trigger render and verify to catch specific reCAPTCHA errors
+        try {
+          await verifier.render();
+          await verifier.verify();
+        } catch (vErr) {
+          console.error("reCAPTCHA Verification Error:", vErr);
+          throw new Error("reCAPTCHA check failed. This usually happens if your domain is not authorized in Firebase Console.");
+        }
 
         const result = await signInWithPhoneNumber(auth, phone, verifier);
         setConfirmationResult(result);
         setLoading(false);
         setOtpSent(true);
         setResendTimer(30);
-      } catch (err: unknown) {
+      } catch (err: any) {
         console.error("OTP send error:", err);
-        // If it's a reCAPTCHA error, we might need to reset it
-        if (verifierRef.current) {
-          try { verifierRef.current.clear(); verifierRef.current = null; } catch {}
+        
+        // Handle specific Firebase errors
+        let msg = "An internal error occurred. Please check your Firebase Console settings.";
+        if (err.code === "auth/internal-error") {
+          msg = "Firebase Internal Error. This is usually due to unauthorized domains or disabled APIs in Firebase Console.";
+        } else if (err.message) {
+          msg = err.message;
         }
-        setError(err instanceof Error ? err.message : "Failed to send OTP (Internal Error).");
+
+        // Reset verifier on any error to allow a clean retry
+        if (verifierRef.current) {
+          try { verifierRef.current.clear(); } catch {}
+          verifierRef.current = null;
+        }
+        
+        setError(msg);
         setLoading(false);
       }
     }
