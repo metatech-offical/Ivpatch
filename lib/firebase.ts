@@ -1,5 +1,5 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,8 +11,20 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Prevent duplicate app initialization in Next.js hot-reload
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Initialize Firebase only if we have an API key (to prevent build-time crashes
+// when environment variables might be missing during static generation).
+let app: FirebaseApp;
+let auth: Auth;
+
+if (typeof window !== "undefined" || firebaseConfig.apiKey) {
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  auth = getAuth(app);
+} else {
+  // Fallback for build-time static generation where Firebase might not be needed
+  // We use a proxy or just cast to avoid "undefined" errors in imports,
+  // but since auth usage is usually inside useEffect, this prevents the crash.
+  app = {} as FirebaseApp;
+  auth = {} as Auth;
+}
 
 export { app, auth };
