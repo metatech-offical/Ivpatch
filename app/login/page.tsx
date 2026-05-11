@@ -186,7 +186,8 @@ export default function LoginPage() {
       } catch { setError("Network error."); }
     } else {
       try {
-        const verifier = createFreshVerifier();
+        const verifier = getVerifier();
+        if (!verifier) throw new Error("reCAPTCHA container not found.");
         const result = await signInWithPhoneNumber(auth, phone!, verifier);
         setConfirmationResult(result);
       } catch (err: unknown) {
