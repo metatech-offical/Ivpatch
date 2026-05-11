@@ -46,22 +46,27 @@ export default function LoginPage() {
     if (otpSent && otpRefs.current[0]) otpRefs.current[0]?.focus();
   }, [otpSent]);
 
-  // Cleanup dynamic reCAPTCHA container on unmount
-  useEffect(() => {
-    return () => {
-      document.getElementById("recaptcha-container-login")?.remove();
-    };
-  }, []);
+  // ─── reCAPTCHA initialization ──────
+  const verifierRef = useRef<RecaptchaVerifier | null>(null);
 
-  // ─── reCAPTCHA: remove + recreate DOM element each time (production) ──────
-  const createFreshVerifier = useCallback((): RecaptchaVerifier => {
-    document.getElementById("recaptcha-container-login")?.remove();
-    const div = document.createElement("div");
-    div.id = "recaptcha-container-login";
-    document.body.appendChild(div);
-    return new RecaptchaVerifier(auth, "recaptcha-container-login", {
+  const getVerifier = useCallback(() => {
+    if (verifierRef.current) return verifierRef.current;
+    
+    // Use the element from the DOM (defined in the JSX below)
+    const container = document.getElementById("recaptcha-container-login");
+    if (!container) return null;
+
+    const verifier = new RecaptchaVerifier(auth, container, {
       size: "invisible",
+      callback: () => {
+        // reCAPTCHA solved
+      },
+      "expired-callback": () => {
+        setError("reCAPTCHA expired. Please try again.");
+      }
     });
+    verifierRef.current = verifier;
+    return verifier;
   }, []);
 
   // ─── Send OTP ─────────────────────────────────────────────────────────────
@@ -102,7 +107,9 @@ export default function LoginPage() {
         if (!auth.app) {
           throw new Error("Firebase is not initialized. Please check your API keys in Vercel settings.");
         }
-        const verifier = createFreshVerifier();
+        const verifier = getVerifier();
+        if (!verifier) throw new Error("reCAPTCHA container not found.");
+
         const result = await signInWithPhoneNumber(auth, phone, verifier);
         setConfirmationResult(result);
         setLoading(false);
@@ -110,6 +117,10 @@ export default function LoginPage() {
         setResendTimer(30);
       } catch (err: unknown) {
         console.error("OTP send error:", err);
+        // If it's a reCAPTCHA error, we might need to reset it
+        if (verifierRef.current) {
+          try { verifierRef.current.clear(); verifierRef.current = null; } catch {}
+        }
         setError(err instanceof Error ? err.message : "Failed to send OTP (Internal Error).");
         setLoading(false);
       }
@@ -329,6 +340,7 @@ export default function LoginPage() {
             </div>
           )}
         </div>
+        <div id="recaptcha-container-login"></div>
       </div>
       <style jsx global>{`
         .login-phone-wrapper .PhoneInput { display: flex; align-items: center; height: 100%; width: 100%; gap: 0; position: relative; }

@@ -51,16 +51,27 @@ export default function RegisterPage() {
     if (step === "otp" && otpRefs.current[0]) otpRefs.current[0]?.focus();
   }, [step]);
 
-  useEffect(() => {
-    return () => { document.getElementById("recaptcha-container-register")?.remove(); };
-  }, []);
+  // ─── reCAPTCHA initialization ──────
+  const verifierRef = useRef<RecaptchaVerifier | null>(null);
 
-  const createFreshVerifier = useCallback((): RecaptchaVerifier => {
-    document.getElementById("recaptcha-container-register")?.remove();
-    const div = document.createElement("div");
-    div.id = "recaptcha-container-register";
-    document.body.appendChild(div);
-    return new RecaptchaVerifier(auth, "recaptcha-container-register", { size: "invisible" });
+  const getVerifier = useCallback(() => {
+    if (verifierRef.current) return verifierRef.current;
+    
+    // Use the element from the DOM (defined in the JSX below)
+    const container = document.getElementById("recaptcha-container-register");
+    if (!container) return null;
+
+    const verifier = new RecaptchaVerifier(auth, container, {
+      size: "invisible",
+      callback: () => {
+        // reCAPTCHA solved
+      },
+      "expired-callback": () => {
+        setError("reCAPTCHA expired. Please try again.");
+      }
+    });
+    verifierRef.current = verifier;
+    return verifier;
   }, []);
 
   // ─── Send OTP ─────────────────────────────────────────────────────────────
@@ -86,12 +97,18 @@ export default function RegisterPage() {
         if (!auth.app) {
           throw new Error("Firebase is not initialized. Please check your API keys in Vercel settings.");
         }
-        const verifier = createFreshVerifier();
+        const verifier = getVerifier();
+        if (!verifier) throw new Error("reCAPTCHA container not found.");
+
         const result = await signInWithPhoneNumber(auth, phone, verifier);
         setConfirmationResult(result);
         setLoading(false); setStep("otp"); setResendTimer(30);
       } catch (err: unknown) {
         console.error("OTP send error:", err);
+        // If it's a reCAPTCHA error, we might need to reset it
+        if (verifierRef.current) {
+          try { verifierRef.current.clear(); verifierRef.current = null; } catch {}
+        }
         setError(err instanceof Error ? err.message : "Failed to send OTP (Internal Error).");
         setLoading(false);
       }
@@ -335,6 +352,7 @@ export default function RegisterPage() {
             </div>
           )}
         </div>
+        <div id="recaptcha-container-register"></div>
       </div>
       <style jsx global>{`
         .register-phone-wrapper .PhoneInput { display: flex; align-items: center; height: 100%; width: 100%; gap: 0; }
