@@ -99,6 +99,9 @@ export default function LoginPage() {
     } else {
       // ── Production: Firebase Phone Auth (real SMS via Firebase) ──
       try {
+        if (!auth.app) {
+          throw new Error("Firebase is not initialized. Please check your API keys in Vercel settings.");
+        }
         const verifier = createFreshVerifier();
         const result = await signInWithPhoneNumber(auth, phone, verifier);
         setConfirmationResult(result);
@@ -107,7 +110,7 @@ export default function LoginPage() {
         setResendTimer(30);
       } catch (err: unknown) {
         console.error("OTP send error:", err);
-        setError(err instanceof Error ? err.message : "Failed to send OTP.");
+        setError(err instanceof Error ? err.message : "Failed to send OTP (Internal Error).");
         setLoading(false);
       }
     }

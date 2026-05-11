@@ -83,12 +83,16 @@ export default function RegisterPage() {
       } catch { setError("Network error."); setLoading(false); }
     } else {
       try {
+        if (!auth.app) {
+          throw new Error("Firebase is not initialized. Please check your API keys in Vercel settings.");
+        }
         const verifier = createFreshVerifier();
         const result = await signInWithPhoneNumber(auth, phone, verifier);
         setConfirmationResult(result);
         setLoading(false); setStep("otp"); setResendTimer(30);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to send OTP.");
+        console.error("OTP send error:", err);
+        setError(err instanceof Error ? err.message : "Failed to send OTP (Internal Error).");
         setLoading(false);
       }
     }

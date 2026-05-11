@@ -11,18 +11,21 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase only if we have an API key (to prevent build-time crashes
-// when environment variables might be missing during static generation).
+// Initialize Firebase only if we have an API key.
+// In Next.js, this module is evaluated on both server and client.
 let app: FirebaseApp;
 let auth: Auth;
 
-if (typeof window !== "undefined" || firebaseConfig.apiKey) {
+if (firebaseConfig.apiKey) {
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
 } else {
-  // Fallback for build-time static generation where Firebase might not be needed
-  // We use a proxy or just cast to avoid "undefined" errors in imports,
-  // but since auth usage is usually inside useEffect, this prevents the crash.
+  // If API key is missing (e.g. during build or misconfigured env),
+  // we provide a dummy object to prevent top-level crashes.
+  // IMPORTANT: The user must add NEXT_PUBLIC_FIREBASE_API_KEY to Vercel.
+  if (typeof window !== "undefined") {
+    console.warn("Firebase API Key is missing. Check your environment variables.");
+  }
   app = {} as FirebaseApp;
   auth = {} as Auth;
 }
