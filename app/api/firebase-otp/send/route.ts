@@ -53,6 +53,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error("OTP send error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Internal server error",
+      details: err.message || err.toString()
+    }, { status: 500 });
   }
 }
