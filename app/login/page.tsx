@@ -15,7 +15,6 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   OAuthProvider,
-  ConfirmationResult,
 } from "firebase/auth";
 import "react-phone-number-input/style.css";
 
@@ -29,8 +28,7 @@ export default function LoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resendTimer, setResendTimer] = useState(0);
-  // Firebase Phone Auth confirmation (production only)
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [sessionInfo, setSessionInfo] = useState<string | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const { loginWithPhone, loginWithSocial } = useAuth();
@@ -46,40 +44,26 @@ export default function LoginPage() {
     if (otpSent && otpRefs.current[0]) otpRefs.current[0]?.focus();
   }, [otpSent]);
 
-  // ─── reCAPTCHA initialization ──────
-  const verifierRef = useRef<RecaptchaVerifier | null>(null);
-
-  const getVerifier = useCallback(() => {
-    // If verifier exists, check if it's still attached to the DOM
-    if (verifierRef.current) {
-      const el = document.getElementById("recaptcha-container-login");
-      if (el && el.children.length > 0) return verifierRef.current;
-      // If container is empty, the verifier might have been cleared
-      try { verifierRef.current.clear(); } catch {}
-      verifierRef.current = null;
-    }
-    
-    const container = document.getElementById("recaptcha-container-login");
-    if (!container) return null;
-
-    try {
-      const verifier = new RecaptchaVerifier(auth, container, {
-        size: "invisible",
-        callback: () => { console.log("reCAPTCHA solved"); },
-        "expired-callback": () => {
-          setError("reCAPTCHA expired. Please try again.");
-          if (verifierRef.current) {
-            verifierRef.current.clear();
-            verifierRef.current = null;
-          }
+  // ─── reCAPTCHA Enterprise execution ──────
+  const executeRecaptcha = useCallback(async (): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const grecaptcha = (window as any).grecaptcha;
+      if (!grecaptcha?.enterprise) {
+        reject(new Error("reCAPTCHA Enterprise not loaded. Please refresh the page."));
+        return;
+      }
+      grecaptcha.enterprise.ready(async () => {
+        try {
+          const token = await grecaptcha.enterprise.execute(
+            "6Ldo--UsAAAAAIaW_pg60v0iEmnzmeRCM2jLSfHH",
+            { action: "LOGIN" }
+          );
+          resolve(token);
+        } catch (err) {
+          reject(err);
         }
       });
-      verifierRef.current = verifier;
-      return verifier;
-    } catch (err) {
-      console.error("Failed to create RecaptchaVerifier:", err);
-      return null;
-    }
+    });
   }, []);
 
   // ─── Send OTP ─────────────────────────────────────────────────────────────
@@ -97,67 +81,32 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    if (IS_DEV) {
-      // ── Development: server-side OTP (printed to terminal) ──
-      try {
-        const res = await fetch("/api/firebase-otp/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone }),
-        });
-        const data = await res.json();
-        if (!res.ok) { setError(data.error || "Failed to send OTP."); setLoading(false); return; }
+    try {
+      // 1. Get reCAPTCHA Enterprise token
+      const recaptchaToken = await executeRecaptcha();
+
+      // 2. Call our server-side API to send OTP via Firebase REST API
+      const res = await fetch("/api/firebase-otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, recaptchaToken }),
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setError(data.error || "Failed to send OTP.");
         setLoading(false);
-        setOtpSent(true);
-        setResendTimer(30);
-      } catch {
-        setError("Network error. Please try again.");
-        setLoading(false);
+        return;
       }
-    } else {
-      // ── Production: Firebase Phone Auth (real SMS via Firebase) ──
-      try {
-        if (!auth.app || !auth.config?.apiKey) {
-          throw new Error("Firebase configuration is missing. Please ensure all NEXT_PUBLIC_FIREBASE_* variables are set in Vercel.");
-        }
-        
-        const verifier = getVerifier();
-        if (!verifier) throw new Error("reCAPTCHA system failed to initialize. Please refresh and try again.");
 
-        // Manually trigger render and verify to catch specific reCAPTCHA errors
-        try {
-          await verifier.render();
-          await verifier.verify();
-        } catch (vErr) {
-          console.error("reCAPTCHA Verification Error:", vErr);
-          throw new Error("reCAPTCHA check failed. This usually happens if your domain is not authorized in Firebase Console.");
-        }
-
-        const result = await signInWithPhoneNumber(auth, phone, verifier);
-        setConfirmationResult(result);
-        setLoading(false);
-        setOtpSent(true);
-        setResendTimer(30);
-      } catch (err: any) {
-        console.error("OTP send error:", err);
-        
-        // Handle specific Firebase errors
-        let msg = "An internal error occurred. Please check your Firebase Console settings.";
-        if (err.code === "auth/internal-error") {
-          msg = "Firebase Internal Error. This is usually due to unauthorized domains or disabled APIs in Firebase Console.";
-        } else if (err.message) {
-          msg = err.message;
-        }
-
-        // Reset verifier on any error to allow a clean retry
-        if (verifierRef.current) {
-          try { verifierRef.current.clear(); } catch {}
-          verifierRef.current = null;
-        }
-        
-        setError(msg);
-        setLoading(false);
-      }
+      setSessionInfo(data.sessionInfo);
+      setLoading(false);
+      setOtpSent(true);
+      setResendTimer(30);
+    } catch (err: any) {
+      console.error("OTP send error:", err);
+      setError(err.message || "Failed to send OTP.");
+      setLoading(false);
     }
   };
 
@@ -170,34 +119,23 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    if (IS_DEV) {
-      // ── Development: verify via Admin SDK → get custom token ──
-      try {
-        const res = await fetch("/api/firebase-otp/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, code }),
-        });
-        const data = await res.json();
-        if (!res.ok) { setError(data.error || "Invalid OTP."); setLoading(false); return; }
-        const credential = await signInWithCustomToken(auth, data.customToken);
-        loginWithPhone(credential.user.phoneNumber || phone || "", credential.user.uid);
-        router.push("/");
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Sign-in failed.");
-        setLoading(false);
-      }
-    } else {
-      // ── Production: verify via Firebase confirmationResult ──
-      if (!confirmationResult) { setError("Session expired. Please request a new OTP."); setLoading(false); return; }
-      try {
-        const credential = await confirmationResult.confirm(code);
-        loginWithPhone(credential.user.phoneNumber || phone || "", credential.user.uid);
-        router.push("/");
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Invalid OTP. Please try again.");
-        setLoading(false);
-      }
+    // Verify via our server API → get custom token
+    try {
+      const res = await fetch("/api/firebase-otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, code, sessionInfo }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Invalid OTP."); setLoading(false); return; }
+      
+      // Sign in locally with the custom token returned by the server
+      const credential = await signInWithCustomToken(auth, data.customToken);
+      loginWithPhone(credential.user.phoneNumber || phone || "", credential.user.uid);
+      router.push("/");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Sign-in failed.");
+      setLoading(false);
     }
   };
 
@@ -208,25 +146,21 @@ export default function LoginPage() {
     setError("");
     setResendTimer(30);
 
-    if (IS_DEV) {
-      try {
-        const res = await fetch("/api/firebase-otp/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone }),
-        });
-        const data = await res.json();
-        if (!res.ok) setError(data.error || "Failed to resend OTP.");
-      } catch { setError("Network error."); }
-    } else {
-      try {
-        const verifier = getVerifier();
-        if (!verifier) throw new Error("reCAPTCHA container not found.");
-        const result = await signInWithPhoneNumber(auth, phone!, verifier);
-        setConfirmationResult(result);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to resend OTP.");
+    try {
+      const recaptchaToken = await executeRecaptcha();
+      const res = await fetch("/api/firebase-otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, recaptchaToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to resend OTP.");
+      } else {
+        setSessionInfo(data.sessionInfo);
       }
+    } catch (err: any) {
+      setError(err.message || "Failed to resend OTP.");
     }
   };
 
@@ -375,7 +309,6 @@ export default function LoginPage() {
             </div>
           )}
         </div>
-        <div id="recaptcha-container-login"></div>
       </div>
       <style jsx global>{`
         .login-phone-wrapper .PhoneInput { display: flex; align-items: center; height: 100%; width: 100%; gap: 0; position: relative; }

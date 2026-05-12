@@ -9,6 +9,7 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  recaptchaSiteKey: "6Ldo--UsAAAAAIaW_pg60v0iEmnzmeRCM2jLSfHH",
 };
 
 // Initialize Firebase only if we have an API key.

@@ -1,60 +1,74 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminAuth } from "@/lib/firebase-admin";
 
-// Force dynamic so Next.js never statically pre-renders this route during build
 export const dynamic = "force-dynamic";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var _otpStore: Map<string, { code: string; expiresAt: number }> | undefined;
-}
-const otpStore: Map<string, { code: string; expiresAt: number }> =
-  global._otpStore ?? (global._otpStore = new Map());
-
+/**
+ * Verifies the phone code via Firebase Identity Toolkit REST API.
+ * On success, it creates a custom token via Admin SDK for the client.
+ */
 export async function POST(req: NextRequest) {
   try {
-    const { phone, code } = await req.json();
+    const { phone, code, sessionInfo } = await req.json();
 
-    if (!phone || !code) {
-      return NextResponse.json({ error: "Phone and code are required." }, { status: 400 });
+    if (!code || !sessionInfo) {
+      return NextResponse.json({ error: "Code and session info are required." }, { status: 400 });
     }
 
-    const entry = otpStore.get(phone);
+    const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
-    if (!entry) {
-      return NextResponse.json({ error: "No OTP found. Please request a new code." }, { status: 400 });
+    // 1. Verify the code via Firebase REST API
+    const response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=${FIREBASE_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionInfo,
+          code,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Firebase Verify API Error:", data);
+      return NextResponse.json(
+        { error: data.error?.message || "Invalid or expired verification code." },
+        { status: response.status }
+      );
     }
 
-    if (Date.now() > entry.expiresAt) {
-      otpStore.delete(phone);
-      return NextResponse.json({ error: "OTP has expired. Please request a new code." }, { status: 400 });
-    }
+    // 2. Get the UID (localId) from the response
+    const uid = data.localId;
 
-    if (entry.code !== code) {
-      return NextResponse.json({ error: "Invalid OTP. Please try again." }, { status: 400 });
-    }
-
-    // OTP verified — delete so it can't be reused
-    otpStore.delete(phone);
-
-    // Get or create the Firebase Auth user for this phone number
-    let uid: string;
+    // 3. (Optional) Update user profile or fetch existing user
+    let user;
     try {
-      const existingUser = await getAdminAuth().getUserByPhoneNumber(phone);
-      uid = existingUser.uid;
-    } catch {
-      // User doesn't exist yet — create them
-      const newUser = await getAdminAuth().createUser({ phoneNumber: phone });
-      uid = newUser.uid;
+      user = await getAdminAuth().getUser(uid);
+    } catch (err: any) {
+      if (err.code === "auth/user-not-found") {
+        // Create new user if they don't exist
+        user = await getAdminAuth().createUser({
+          uid,
+          phoneNumber: phone,
+        });
+      } else {
+        throw err;
+      }
     }
 
-    // Create a Firebase custom token for this UID
-    // The client will use signInWithCustomToken() to create a real Firebase session
+    // 4. Create a custom token for the frontend to sign in with
     const customToken = await getAdminAuth().createCustomToken(uid);
 
-    return NextResponse.json({ success: true, customToken });
-  } catch (err: unknown) {
+    return NextResponse.json({
+      success: true,
+      customToken,
+      uid,
+    });
+  } catch (err: any) {
     console.error("OTP verify error:", err);
-    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

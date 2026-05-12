@@ -1,47 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Force dynamic so Next.js never statically pre-renders this route during build
 export const dynamic = "force-dynamic";
 
-// Shared OTP store (survives Next.js hot-reloads in dev)
-declare global {
-  // eslint-disable-next-line no-var
-  var _otpStore: Map<string, { code: string; expiresAt: number }> | undefined;
-}
-const otpStore: Map<string, { code: string; expiresAt: number }> =
-  global._otpStore ?? (global._otpStore = new Map());
-
+/**
+ * Sends a phone verification code via Firebase Identity Toolkit REST API.
+ * This bypasses the flaky client-side RecaptchaVerifier and uses reCAPTCHA Enterprise.
+ */
 export async function POST(req: NextRequest) {
   try {
-    const { phone } = await req.json();
+    const { phone, recaptchaToken } = await req.json();
 
-    if (!phone || typeof phone !== "string") {
+    if (!phone) {
       return NextResponse.json({ error: "Phone number is required." }, { status: 400 });
     }
 
-    // Generate 6-digit OTP
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
-    otpStore.set(phone, { code, expiresAt });
+    // 1. Call Firebase Identity Toolkit REST API to send verification code
+    // This requires the 'reCAPTCHA Enterprise' token from the frontend.
+    const response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=${FIREBASE_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phoneNumber: phone,
+          recaptchaToken: recaptchaToken,
+        }),
+      }
+    );
 
-    // ─── SMS Integration ──────────────────────────────────────────────────────
-    // Plug in your preferred SMS provider here (Twilio, Fast2SMS, MSG91, etc.)
-    // Example with Fast2SMS (free tier, great for India):
-    //
-    // await fetch("https://www.fast2sms.com/dev/bulkV2", {
-    //   method: "POST",
-    //   headers: { authorization: process.env.FAST2SMS_API_KEY!, "Content-Type": "application/json" },
-    //   body: JSON.stringify({ variables_values: code, route: "otp", numbers: phone.replace("+91", "") }),
-    // });
-    //
-    // For now, OTP is logged to the server console for local development:
-    console.log(`\n📱 OTP for ${phone}: ${code}\n`);
-    // ─────────────────────────────────────────────────────────────────────────
+    const data = await response.json();
 
-    return NextResponse.json({ success: true, message: "OTP sent." });
-  } catch (err: unknown) {
+    if (!response.ok) {
+      console.error("Firebase REST API Error:", data);
+      
+      // Handle specific common errors
+      if (data.error?.message === "MISSING_RECAPTCHA_TOKEN") {
+        return NextResponse.json({ error: "reCAPTCHA verification failed. Please refresh." }, { status: 400 });
+      }
+      
+      return NextResponse.json(
+        { error: data.error?.message || "Failed to send verification code." },
+        { status: response.status }
+      );
+    }
+
+    // Return the sessionInfo (required for verification)
+    return NextResponse.json({
+      success: true,
+      sessionInfo: data.sessionInfo,
+    });
+  } catch (err: any) {
     console.error("OTP send error:", err);
-    return NextResponse.json({ error: "Failed to send OTP." }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
