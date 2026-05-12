@@ -14,19 +14,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Phone number is required." }, { status: 400 });
     }
 
+    const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
-    // 1. Call Firebase Identity Toolkit REST API to send verification code
-    // This requires the 'reCAPTCHA Enterprise' token from the frontend.
+    // 1. Call Firebase Identity Platform v2 REST API to send verification code
     const response = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=${FIREBASE_API_KEY}`,
+      `https://identitytoolkit.googleapis.com/v2/projects/${PROJECT_ID}/phoneNumbers:sendVerificationCode?key=${FIREBASE_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phoneNumber: phone,
           recaptchaToken: recaptchaToken,
-          recaptchaVersion: "RECAPTCHA_ENTERPRISE"
         }),
       }
     );

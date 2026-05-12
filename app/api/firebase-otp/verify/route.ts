@@ -15,11 +15,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Code and session info are required." }, { status: 400 });
     }
 
+    const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
-    // 1. Verify the code via Firebase REST API
+    // 1. Verify the code via Firebase Identity Platform v2 REST API
     const response = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=${FIREBASE_API_KEY}`,
+      `https://identitytoolkit.googleapis.com/v2/projects/${PROJECT_ID}/phoneNumbers:signIn?key=${FIREBASE_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
