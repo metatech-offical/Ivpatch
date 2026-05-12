@@ -58,8 +58,9 @@ export default function RegisterPage() {
       }
       grecaptcha.enterprise.ready(async () => {
         try {
+          const siteKey = (auth as any).config?.recaptchaSiteKey || "6Ldo--UsAAAAAIaW_pg60v0iEmnzmeRCM2jLSfHH";
           const token = await grecaptcha.enterprise.execute(
-            "6Ldo--UsAAAAAIaW_pg60v0iEmnzmeRCM2jLSfHH",
+            siteKey,
             { action: "REGISTER" }
           );
           resolve(token);
@@ -85,7 +86,12 @@ export default function RegisterPage() {
         body: JSON.stringify({ phone, recaptchaToken }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Failed to send OTP."); setLoading(false); return; }
+      if (!res.ok) {
+        const errorMsg = data.details?.message || data.error || "Failed to send OTP.";
+        setError(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
+        setLoading(false);
+        return;
+      }
       setSessionInfo(data.sessionInfo);
       setLoading(false); setStep("otp"); setResendTimer(30);
     } catch (err: any) {

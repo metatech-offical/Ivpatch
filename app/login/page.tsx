@@ -54,8 +54,9 @@ export default function LoginPage() {
       }
       grecaptcha.enterprise.ready(async () => {
         try {
+          const siteKey = (auth as any).config?.recaptchaSiteKey || "6Ldo--UsAAAAAIaW_pg60v0iEmnzmeRCM2jLSfHH";
           const token = await grecaptcha.enterprise.execute(
-            "6Ldo--UsAAAAAIaW_pg60v0iEmnzmeRCM2jLSfHH",
+            siteKey,
             { action: "LOGIN" }
           );
           resolve(token);
@@ -94,7 +95,8 @@ export default function LoginPage() {
       const data = await res.json();
       
       if (!res.ok) {
-        setError(data.error || "Failed to send OTP.");
+        const errorMsg = data.details?.message || data.error || "Failed to send OTP.";
+        setError(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
         setLoading(false);
         return;
       }
