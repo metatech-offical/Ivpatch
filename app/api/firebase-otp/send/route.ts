@@ -36,13 +36,12 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       console.error("Firebase REST API Error:", data);
       
-      // Handle specific common errors
-      if (data.error?.message === "MISSING_RECAPTCHA_TOKEN") {
-        return NextResponse.json({ error: "reCAPTCHA verification failed. Please refresh." }, { status: 400 });
-      }
-      
+      // Return the detailed error to the client for debugging
       return NextResponse.json(
-        { error: data.error?.message || "Failed to send verification code." },
+        { 
+          error: data.error?.message || "Failed to send verification code.",
+          details: data.error // Added full error details
+        },
         { status: response.status }
       );
     }
