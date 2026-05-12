@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           phoneNumber: phone,
           recaptchaToken: recaptchaToken,
+          recaptchaVersion: "RECAPTCHA_ENTERPRISE"
         }),
       }
     );
