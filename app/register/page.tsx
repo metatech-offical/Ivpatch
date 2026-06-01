@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
@@ -9,14 +9,15 @@ import CustomCountrySelect from "@/components/ui/CustomCountrySelect";
 import { useAuth } from "@/context/AuthContext";
 import { auth } from "@/lib/firebase";
 import {
-  signInWithCustomToken,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
   signInWithPopup,
   GoogleAuthProvider,
   OAuthProvider,
+  ConfirmationResult,
 } from "firebase/auth";
 import "react-phone-number-input/style.css";
 
-const IS_DEV = process.env.NODE_ENV === "development";
 type Step = "phone" | "otp" | "details";
 
 export default function RegisterPage() {
@@ -26,8 +27,9 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<Step>("phone");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [sessionInfo, setSessionInfo] = useState<string | null>(null);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [resendTimer, setResendTimer] = useState(0);
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const { registerUser, loginWithSocial } = useAuth();
@@ -48,28 +50,25 @@ export default function RegisterPage() {
     if (step === "otp" && otpRefs.current[0]) otpRefs.current[0]?.focus();
   }, [step]);
 
-  // ─── reCAPTCHA Enterprise execution ──────
-  const executeRecaptcha = useCallback(async (): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const grecaptcha = (window as any).grecaptcha;
-      if (!grecaptcha?.enterprise) {
-        reject(new Error("reCAPTCHA Enterprise not loaded. Please refresh the page."));
-        return;
-      }
-      grecaptcha.enterprise.ready(async () => {
-        try {
-          const siteKey = (auth as any).config?.recaptchaSiteKey || "6Ldo--UsAAAAAIaW_pg60v0iEmnzmeRCM2jLSfHH";
-          const token = await grecaptcha.enterprise.execute(
-            siteKey,
-            { action: "REGISTER" }
-          );
-          resolve(token);
-        } catch (err) {
-          reject(err);
-        }
-      });
-    });
+  useEffect(() => {
+    return () => { clearRecaptcha(); };
   }, []);
+
+  const clearRecaptcha = () => {
+    if (recaptchaVerifierRef.current) {
+      try { recaptchaVerifierRef.current.clear(); } catch {}
+      recaptchaVerifierRef.current = null;
+    }
+  };
+
+  const getVerifier = (): RecaptchaVerifier => {
+    clearRecaptcha();
+    const v = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "invisible",
+    });
+    recaptchaVerifierRef.current = v;
+    return v;
+  };
 
   // ─── Send OTP ─────────────────────────────────────────────────────────────
   const handleGetOtp = async (e: React.FormEvent) => {
@@ -77,26 +76,16 @@ export default function RegisterPage() {
     setError("");
     if (!phone || !isValidPhoneNumber(phone)) { setError("Please enter a valid phone number."); return; }
     if (!agreedToTerms) { setError("Please agree to the Terms of Service & Privacy Policy."); return; }
-
     setLoading(true);
     try {
-      const recaptchaToken = await executeRecaptcha();
-      const res = await fetch("/api/firebase-otp/send", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, recaptchaToken }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        const errorMsg = data.details?.message || data.error || "Failed to send OTP.";
-        setError(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
-        setLoading(false);
-        return;
-      }
-      setSessionInfo(data.sessionInfo);
-      setLoading(false); setStep("otp"); setResendTimer(30);
+      const result = await signInWithPhoneNumber(auth, phone, getVerifier());
+      setConfirmationResult(result);
+      setStep("otp");
+      setResendTimer(30);
     } catch (err: any) {
-      console.error("OTP send error:", err);
-      setError(err.message || "Failed to send OTP.");
+      clearRecaptcha();
+      setError(friendlyError(err));
+    } finally {
       setLoading(false);
     }
   };
@@ -107,37 +96,29 @@ export default function RegisterPage() {
     setError("");
     const code = otp.join("");
     if (code.length < 6) { setError("Please enter the complete 6-digit code."); return; }
-
+    if (!confirmationResult) { setError("Session expired. Please request a new OTP."); return; }
     setLoading(true);
     try {
-      const res = await fetch("/api/firebase-otp/verify", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, code, sessionInfo }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Invalid OTP."); setLoading(false); return; }
-      await signInWithCustomToken(auth, data.customToken);
-      setLoading(false); setStep("details");
+      await confirmationResult.confirm(code);
+      setStep("details");
     } catch (err: any) {
-      setError(err.message || "Verification failed.");
+      setError(friendlyError(err));
+    } finally {
       setLoading(false);
     }
   };
 
   // ─── Resend OTP ───────────────────────────────────────────────────────────
   const handleResend = async () => {
-    if (resendTimer > 0) return;
+    if (resendTimer > 0 || !phone) return;
     setOtp(["", "", "", "", "", ""]); setError(""); setResendTimer(30);
     try {
-      const recaptchaToken = await executeRecaptcha();
-      const res = await fetch("/api/firebase-otp/send", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, recaptchaToken }),
-      });
-      const data = await res.json();
-      if (!res.ok) setError(data.error || "Failed to resend.");
-      else setSessionInfo(data.sessionInfo);
-    } catch (err: any) { setError(err.message || "Network error."); }
+      const result = await signInWithPhoneNumber(auth, phone, getVerifier());
+      setConfirmationResult(result);
+    } catch (err: any) {
+      clearRecaptcha();
+      setError(friendlyError(err));
+    }
   };
 
   // ─── OTP input helpers ────────────────────────────────────────────────────
@@ -165,22 +146,42 @@ export default function RegisterPage() {
     if (!firstName.trim() || !lastName.trim()) { setError("Please enter your full name."); return; }
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) { setError("Please enter a valid email address."); return; }
     setLoading(true);
-    setTimeout(() => { registerUser({ phone: phone || "", firstName, lastName, email, gender }); setLoading(false); router.push("/profile"); }, 600);
+    setTimeout(() => {
+      registerUser({ phone: phone || "", firstName, lastName, email, gender });
+      setLoading(false);
+      router.push("/profile");
+    }, 600);
   };
 
   // ─── Social sign-ins ──────────────────────────────────────────────────────
   const handleGoogleSignIn = async () => {
     setError(""); setLoading(true);
-    try { const r = await signInWithPopup(auth, new GoogleAuthProvider()); loginWithSocial(r.user); router.push("/"); }
-    catch (err: unknown) { setError(err instanceof Error ? err.message : "Google sign-in failed."); setLoading(false); }
+    try {
+      const r = await signInWithPopup(auth, new GoogleAuthProvider());
+      loginWithSocial(r.user); router.push("/");
+    } catch (err: any) { setError(friendlyError(err)); setLoading(false); }
   };
 
   const handleAppleSignIn = async () => {
     setError(""); setLoading(true);
     try {
       const p = new OAuthProvider("apple.com"); p.addScope("email"); p.addScope("name");
-      const r = await signInWithPopup(auth, p); loginWithSocial(r.user); router.push("/");
-    } catch (err: unknown) { setError(err instanceof Error ? err.message : "Apple sign-in failed."); setLoading(false); }
+      const r = await signInWithPopup(auth, p);
+      loginWithSocial(r.user); router.push("/");
+    } catch (err: any) { setError(friendlyError(err)); setLoading(false); }
+  };
+
+  const friendlyError = (err: any): string => {
+    switch (err.code) {
+      case "auth/too-many-requests": return "Too many attempts. Please try again later.";
+      case "auth/invalid-phone-number": return "Invalid phone number format. Include country code.";
+      case "auth/invalid-verification-code": return "Incorrect OTP. Please check and try again.";
+      case "auth/code-expired": return "OTP expired. Please request a new one.";
+      case "auth/missing-phone-number": return "Please enter a phone number.";
+      case "auth/quota-exceeded": return "SMS quota exceeded. Please try again later.";
+      case "auth/user-disabled": return "This account has been disabled.";
+      default: return err.message || "Something went wrong. Please try again.";
+    }
   };
 
   const Spinner = () => (
@@ -196,12 +197,15 @@ export default function RegisterPage() {
         <Navbar />
         <div className="w-full max-w-[1252px] min-h-[722px] bg-[#9DA9A3] rounded-[16px] flex items-center justify-center py-12 md:py-16 px-4 relative">
 
+          {/* Hidden reCAPTCHA anchor */}
+          <div id="recaptcha-container" style={{ position: "absolute", bottom: 0, right: 0 }} />
+
           {/* Step 3: Details */}
           {step === "details" && (
             <div className="flex flex-col items-center w-full max-w-[627px]">
               <button type="button" onClick={() => { setStep("otp"); setError(""); }}
                 className="absolute top-6 left-8 flex items-center gap-2 text-white/80 hover:text-white text-[16px] font-['Satoshi:Regular',sans-serif] transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
                 Go Back
               </button>
               <img src="/login-icon.svg" alt="Details" className="w-[100px] h-[100px] mb-6" />
@@ -237,27 +241,22 @@ export default function RegisterPage() {
           {/* Step 2: OTP */}
           {step === "otp" && (
             <div className="flex flex-col items-center w-full max-w-[627px]">
-              <button type="button" onClick={() => { setStep("phone"); setOtp(["","","","","",""]); setError(""); setSessionInfo(null); }}
+              <button type="button" onClick={() => { setStep("phone"); setOtp(["","","","","",""]); setError(""); setConfirmationResult(null); }}
                 className="absolute top-6 left-8 flex items-center gap-2 text-white/80 hover:text-white text-[16px] font-['Satoshi:Regular',sans-serif] transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
                 Go Back
               </button>
               <img src="/login-icon.svg" alt="Register" className="w-[100px] h-[100px] mb-6" />
               <h1 className="text-white text-[28px] md:text-[30px] font-['Satoshi:Bold',sans-serif] mb-2 text-center">Verify your number</h1>
-              {IS_DEV && (
-                <p className="text-yellow-200 text-[13px] font-['Satoshi:Regular',sans-serif] mb-2 text-center bg-black/20 px-3 py-1 rounded-full">
-                  🛠 Dev mode — check your server terminal for the OTP
-                </p>
-              )}
-              <p className="text-white/60 text-[15px] font-['Satoshi:Regular',sans-serif] mb-2 text-center">
-                {IS_DEV ? "Enter the OTP from your terminal" : "We've sent a 6-digit code to"}
-              </p>
+              <p className="text-white/60 text-[15px] font-['Satoshi:Regular',sans-serif] mb-2 text-center">We&apos;ve sent a 6-digit code to</p>
               <p className="text-white font-['Satoshi:Bold',sans-serif] text-[16px] mb-8 text-center">{phone}</p>
               <form onSubmit={handleVerifyOtp} className="w-full flex flex-col items-center gap-6">
                 <div className="flex items-center justify-center gap-[10px] md:gap-[14px]">
                   {otp.map((digit, idx) => (
-                    <input key={idx} ref={(el) => { otpRefs.current[idx] = el; }} type="text" inputMode="numeric" maxLength={6} value={digit}
-                      onChange={(e) => handleOtpChange(idx, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                    <input key={idx} ref={(el) => { otpRefs.current[idx] = el; }}
+                      type="text" inputMode="numeric" maxLength={6} value={digit}
+                      onChange={(e) => handleOtpChange(idx, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                       className="w-[50px] h-[72px] md:w-[58px] md:h-[84px] bg-white/20 border border-white/25 rounded-[12px] text-white text-[30px] md:text-[34px] font-['Satoshi:Bold',sans-serif] text-center outline-none focus:border-white/70 focus:bg-white/30 transition-all placeholder:text-white/25"
                       placeholder="–" />
                   ))}
@@ -285,16 +284,21 @@ export default function RegisterPage() {
               <h1 className="text-white text-[28px] md:text-[30px] font-['Satoshi:Bold',sans-serif] mb-8 text-center">Create Your Account</h1>
               <form onSubmit={handleGetOtp} className="w-full flex flex-col items-center gap-5">
                 <div className="w-full h-[82px] rounded-[16px] flex items-center overflow-visible register-phone-wrapper">
-                  <PhoneInput international countryCallingCodeEditable={false} defaultCountry="AE" value={phone}
-                    onChange={(value) => setPhone(value)} placeholder="Enter your phone number"
-                    className="w-full h-full phone-input-custom" countrySelectComponent={CustomCountrySelect}
+                  <PhoneInput international countryCallingCodeEditable={false} defaultCountry="AE"
+                    value={phone} onChange={(value) => setPhone(value)}
+                    placeholder="Enter your phone number" className="w-full h-full phone-input-custom"
+                    countrySelectComponent={CustomCountrySelect}
                     numberInputProps={{ className: "phone-number-input" }} />
                 </div>
                 {error && <p className="text-red-200 text-[14px] w-full text-left">{error}</p>}
                 <label className="flex items-center gap-3 w-full cursor-pointer select-none mt-1">
                   <div onClick={(e) => { e.preventDefault(); setAgreedToTerms(!agreedToTerms); }}
                     className={`w-[22px] h-[22px] rounded-[5px] border-2 flex-shrink-0 flex items-center justify-center transition-all cursor-pointer ${agreedToTerms ? "bg-white border-white" : "bg-transparent border-white/70"}`}>
-                    {agreedToTerms && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#445C4F" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                    {agreedToTerms && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#445C4F" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
                   </div>
                   <span className="text-white/80 text-[14px] md:text-[16px] font-['Satoshi:Medium',sans-serif] leading-snug">
                     I agree to the <span className="text-white font-['Satoshi:Bold',sans-serif]">Terms of Service</span> & <span className="text-white font-['Satoshi:Bold',sans-serif]">Privacy Policy</span>

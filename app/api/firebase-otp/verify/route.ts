@@ -4,23 +4,35 @@ import { getAdminAuth } from "@/lib/firebase-admin";
 export const dynamic = "force-dynamic";
 
 /**
- * Verifies the phone code via Firebase Identity Toolkit REST API.
+ * Verifies the phone code via Firebase Identity Toolkit v1 REST API.
  * On success, it creates a custom token via Admin SDK for the client.
+ *
+ * Uses the v1 endpoint (`/v1/accounts:signInWithPhoneNumber`) which works
+ * with standard Firebase Authentication — no Identity Platform upgrade needed.
  */
 export async function POST(req: NextRequest) {
   try {
     const { phone, code, sessionInfo } = await req.json();
 
     if (!code || !sessionInfo) {
-      return NextResponse.json({ error: "Code and session info are required." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Code and session info are required." },
+        { status: 400 }
+      );
     }
 
-    const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
-    // 1. Verify the code via Firebase Identity Platform v2 REST API
+    if (!FIREBASE_API_KEY) {
+      return NextResponse.json(
+        { error: "Server configuration missing." },
+        { status: 500 }
+      );
+    }
+
+    // 1. Verify the code via Firebase Identity Toolkit v1 REST API
     const response = await fetch(
-      `https://identitytoolkit.googleapis.com/v2/projects/${PROJECT_ID}/phoneNumbers:signIn?key=${FIREBASE_API_KEY}`,
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=${FIREBASE_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -31,12 +43,34 @@ export async function POST(req: NextRequest) {
       }
     );
 
+    // Safely parse the response — guard against non-JSON replies
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error(
+        "Firebase Verify API returned non-JSON response:",
+        response.status,
+        text.slice(0, 500)
+      );
+      return NextResponse.json(
+        {
+          error:
+            "Firebase API returned an unexpected response. Please check your Firebase project configuration.",
+        },
+        { status: 502 }
+      );
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
       console.error("Firebase Verify API Error:", data);
       return NextResponse.json(
-        { error: data.error?.message || "Invalid or expired verification code." },
+        {
+          error:
+            data.error?.message ||
+            "Invalid or expired verification code.",
+        },
         { status: response.status }
       );
     }
@@ -44,14 +78,21 @@ export async function POST(req: NextRequest) {
     // 2. Get the UID (localId) from the response
     const uid = data.localId;
 
+    if (!uid) {
+      console.error("Firebase Verify API did not return localId:", data);
+      return NextResponse.json(
+        { error: "Verification succeeded but no user ID was returned." },
+        { status: 500 }
+      );
+    }
+
     // 3. (Optional) Update user profile or fetch existing user
-    let user;
     try {
-      user = await getAdminAuth().getUser(uid);
+      await getAdminAuth().getUser(uid);
     } catch (err: any) {
       if (err.code === "auth/user-not-found") {
         // Create new user if they don't exist
-        user = await getAdminAuth().createUser({
+        await getAdminAuth().createUser({
           uid,
           phoneNumber: phone,
         });
@@ -70,6 +111,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error("OTP verify error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

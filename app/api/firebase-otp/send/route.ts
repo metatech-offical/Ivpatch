@@ -3,23 +3,42 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 /**
- * Sends a phone verification code via Firebase Identity Toolkit REST API.
- * This bypasses the flaky client-side RecaptchaVerifier and uses reCAPTCHA Enterprise.
+ * Sends a phone verification code via Firebase Identity Toolkit v1 REST API.
+ *
+ * The previous implementation used the v2 Identity Platform endpoint
+ * (`/v2/projects/.../phoneNumbers:sendVerificationCode`) which requires
+ * Identity Platform (paid upgrade) to be enabled. If it isn't, Google
+ * returns an HTML 404 page, which blows up `response.json()`.
+ *
+ * This version uses the standard v1 endpoint that works with basic
+ * Firebase Authentication out of the box.
  */
 export async function POST(req: NextRequest) {
   try {
     const { phone, recaptchaToken } = await req.json();
 
     if (!phone) {
-      return NextResponse.json({ error: "Phone number is required." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Phone number is required." },
+        { status: 400 }
+      );
     }
 
-    const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
-    // 1. Call Firebase Identity Platform v2 REST API to send verification code
+    if (!FIREBASE_API_KEY) {
+      return NextResponse.json(
+        {
+          error: "Server configuration missing.",
+          details: "Missing FIREBASE_API_KEY",
+        },
+        { status: 500 }
+      );
+    }
+
+    // Call Firebase Identity Toolkit v1 REST API to send verification code
     const response = await fetch(
-      `https://identitytoolkit.googleapis.com/v2/projects/${PROJECT_ID}/phoneNumbers:sendVerificationCode?key=${FIREBASE_API_KEY}`,
+      `https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=${FIREBASE_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -30,16 +49,36 @@ export async function POST(req: NextRequest) {
       }
     );
 
+    // Safely parse the response — it might not be JSON if something is
+    // misconfigured on Google's side (e.g. wrong API key, disabled API).
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error(
+        "Firebase API returned non-JSON response:",
+        response.status,
+        text.slice(0, 500)
+      );
+      return NextResponse.json(
+        {
+          error:
+            "Firebase API returned an unexpected response. Please check your Firebase project configuration.",
+          details: `Status ${response.status}, Content-Type: ${contentType}`,
+        },
+        { status: 502 }
+      );
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
       console.error("Firebase REST API Error:", data);
-      
-      // Return the detailed error to the client for debugging
+
       return NextResponse.json(
-        { 
-          error: data.error?.message || "Failed to send verification code.",
-          details: data.error // Added full error details
+        {
+          error:
+            data.error?.message || "Failed to send verification code.",
+          details: data.error,
         },
         { status: response.status }
       );
@@ -52,9 +91,12 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error("OTP send error:", err);
-    return NextResponse.json({ 
-      error: "Internal server error",
-      details: err.message || err.toString()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        details: err.message || err.toString(),
+      },
+      { status: 500 }
+    );
   }
 }

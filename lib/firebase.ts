@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, Auth } from "firebase/auth";
+import { getAuth, Auth, initializeRecaptchaConfig } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -9,7 +9,6 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-  recaptchaSiteKey: process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6Ldo--UsAAAAAIaW_pg60v0iEmnzmeRCM2jLSfHH",
 };
 
 // Initialize Firebase only if we have an API key.
@@ -20,10 +19,18 @@ let auth: Auth;
 if (firebaseConfig.apiKey) {
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
+
+  // Pre-fetch reCAPTCHA Enterprise config so the SDK knows the correct
+  // siteKey and enforcement state before any phone-auth call is made.
+  // This project has PHONE_PROVIDER set to "ENFORCE" — without this call
+  // the SDK's handleRecaptchaFlow sees a null config and tries a v2-only
+  // flow, which the backend rejects with auth/internal-error.
+  if (typeof window !== "undefined") {
+    initializeRecaptchaConfig(auth).catch(() => {
+      // Non-fatal: phone auth will still attempt to fetch config on demand.
+    });
+  }
 } else {
-  // If API key is missing (e.g. during build or misconfigured env),
-  // we provide a dummy object to prevent top-level crashes.
-  // IMPORTANT: The user must add NEXT_PUBLIC_FIREBASE_API_KEY to Vercel.
   if (typeof window !== "undefined") {
     console.warn("Firebase API Key is missing. Check your environment variables.");
   }
