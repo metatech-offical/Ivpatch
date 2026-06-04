@@ -325,13 +325,13 @@ export default function RegisterPage() {
               <p className="text-white/60 text-[15px] font-['Satoshi:Regular',sans-serif] mb-2 text-center">We&apos;ve sent a 6-digit code to</p>
               <p className="text-white font-['Satoshi:Bold',sans-serif] text-[16px] mb-8 text-center">{phone}</p>
               <form onSubmit={handleVerifyOtp} className="w-full flex flex-col items-center gap-6">
-                <div className="flex items-center justify-center gap-[10px] md:gap-[14px]">
+                <div className="flex items-center justify-center gap-[6px] sm:gap-[10px] md:gap-[14px]">
                   {otp.map((digit, idx) => (
                     <input key={idx} ref={(el) => { otpRefs.current[idx] = el; }}
                       type="text" inputMode="numeric" maxLength={6} value={digit}
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                      className="w-[50px] h-[72px] md:w-[58px] md:h-[84px] bg-white/20 border border-white/25 rounded-[12px] text-white text-[30px] md:text-[34px] font-['Satoshi:Bold',sans-serif] text-center outline-none focus:border-white/70 focus:bg-white/30 transition-all placeholder:text-white/25"
+                      className="w-[10vw] h-[14vw] max-w-[58px] max-h-[84px] min-w-[36px] min-h-[52px] bg-white/20 border border-white/25 rounded-[12px] text-white text-[6vw] sm:text-[30px] md:text-[34px] font-['Satoshi:Bold',sans-serif] text-center outline-none focus:border-white/70 focus:bg-white/30 transition-all placeholder:text-white/25"
                       placeholder="–" />
                   ))}
                 </div>

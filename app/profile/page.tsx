@@ -33,6 +33,7 @@ export default function ProfilePage() {
     first_name: "",
     last_name: "",
     phone: "",
+    email: "",
   });
   const [addressForm, setAddressForm] = useState({
     address_line1: "",
@@ -59,6 +60,7 @@ export default function ProfilePage() {
         first_name: firstName || "",
         last_name: lastParts.join(" ") || "",
         phone: user.phone || "",
+        email: user.email || "",
       });
       loadAddresses();
     }
@@ -87,6 +89,7 @@ export default function ProfilePage() {
           first_name: profileForm.first_name,
           last_name: profileForm.last_name,
           phone: profileForm.phone,
+          email: profileForm.email,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
@@ -96,6 +99,7 @@ export default function ProfilePage() {
         ...user,
         name: `${profileForm.first_name || ""} ${profileForm.last_name || ""}`.trim() || "User",
         phone: profileForm.phone || "",
+        email: profileForm.email || "",
       });
 
       setEditingProfile(false);
@@ -470,6 +474,12 @@ export default function ProfilePage() {
                  placeholder="Phone Number"
                  value={profileForm.phone}
                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                 className="w-full h-[52px] bg-white rounded-[12px] px-4 text-[16px] font-['Satoshi:Regular',sans-serif] text-black outline-none placeholder:text-[#A0A0A0]"
+               />
+               <input
+                 placeholder="Email Address"
+                 value={profileForm.email}
+                 onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                  className="w-full h-[52px] bg-white rounded-[12px] px-4 text-[16px] font-['Satoshi:Regular',sans-serif] text-black outline-none placeholder:text-[#A0A0A0]"
                />
              </div>
