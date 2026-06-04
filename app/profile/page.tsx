@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase/client";
 import type { UserAddress } from "@/lib/supabase/types";
 
 export default function ProfilePage() {
-  const { user, logout, isLoggedIn, isLoading: authLoading } = useAuth();
+  const { user, logout, isLoggedIn, isLoading: authLoading, updateUser } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("My profile");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -90,6 +90,14 @@ export default function ProfilePage() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
+      
+      // Update local storage and context state
+      updateUser({
+        ...user,
+        name: `${profileForm.first_name || ""} ${profileForm.last_name || ""}`.trim() || "User",
+        phone: profileForm.phone || "",
+      });
+
       setEditingProfile(false);
     } catch (err) {
       console.error("Failed to update profile:", err);
@@ -175,12 +183,14 @@ export default function ProfilePage() {
                  {user.name}
                </h1>
                <div className="flex flex-col md:flex-row items-center gap-3 md:gap-[40px] text-white/90 text-[16px] md:text-[20px] font-['Satoshi:Regular',sans-serif] leading-none">
-                  <span className="flex items-center gap-2">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="md:w-5 md:h-5">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
-                    {user.phone || "No phone"}
-                  </span>
+                  {user.phone && (
+                    <span className="flex items-center gap-2">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="md:w-5 md:h-5">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                      {user.phone}
+                    </span>
+                  )}
                   <span className="flex items-center gap-2">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="md:w-5 md:h-5">
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -239,10 +249,12 @@ export default function ProfilePage() {
                     </button>
                   </div>
                   <div className="flex flex-col gap-3 text-[#808080] text-[16px] font-['Satoshi:Regular',sans-serif] mt-2">
-                    <span className="flex items-center gap-3">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                      {user.phone || "+971 4 XXX XXXXX"}
-                    </span>
+                    {user.phone && (
+                      <span className="flex items-center gap-3">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        {user.phone}
+                      </span>
+                    )}
                     <span className="flex items-center gap-3">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
                       {user.email}
@@ -315,14 +327,16 @@ export default function ProfilePage() {
                            <span className="absolute top-6 right-6 bg-white px-3 py-1 rounded-[8px] text-[12px] text-[#A0A0A0] font-['Satoshi:Medium',sans-serif]">Default</span>
                          )}
                          <p className="text-[#4D4D4D] text-[18px] font-['Satoshi:Medium',sans-serif] mb-1">
-                           Serene Williams
+                           {user.name}
                          </p>
                          <p className="text-[#4D4D4D] text-[16px] font-['Satoshi:Regular',sans-serif] max-w-[80%]">
                            {addr.address_line1} {addr.address_line2 && `, ${addr.address_line2}`}, {addr.city}, {addr.state && `${addr.state}, `}{addr.country}, {addr.postal_code}
                          </p>
-                         <p className="text-[#4D4D4D] text-[16px] font-['Satoshi:Regular',sans-serif] mt-1">
-                           {user.phone || "+1 416-555-7832"}
-                         </p>
+                         {user.phone && (
+                           <p className="text-[#4D4D4D] text-[16px] font-['Satoshi:Regular',sans-serif] mt-1">
+                             {user.phone}
+                           </p>
+                         )}
                          <button onClick={() => handleDeleteAddress(addr.id)} className="absolute bottom-6 right-6 text-[#dc2626] text-[14px] font-['Satoshi:Medium',sans-serif] opacity-0 group-hover:opacity-100 transition-opacity">
                            Delete
                          </button>

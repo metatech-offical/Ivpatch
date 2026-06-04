@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, User as FirebaseUser } from "firebase/auth";
+import { supabase } from "@/lib/supabase/client";
 
 type User = {
   id: string;
@@ -15,16 +16,26 @@ type User = {
 type AuthContextType = {
   user: User | null;
   firebaseUser: FirebaseUser | null;
-  loginWithPhone: (phone: string, uid: string) => void;
-  loginWithSocial: (fbUser: FirebaseUser) => void;
+  loginWithPhone: (phone: string, uid: string, existingProfile?: User) => void;
+  loginWithSocial: (fbUser: FirebaseUser, existingProfile?: User) => void;
   loginAdmin: (email: string, password: string) => boolean;
   registerUser: (data: {
+    id?: string;
     phone: string;
     firstName: string;
     lastName: string;
     email: string;
-    gender: string;
+    gender?: string;
   }) => void;
+  checkUserProfile: (uid: string) => Promise<User | null>;
+  createUserProfile: (data: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+  }) => Promise<User | null>;
+  updateUser: (updatedUser: User) => void;
   logout: () => Promise<void>;
   isLoggedIn: boolean;
   isLoading: boolean;
@@ -38,12 +49,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Listen to Firebase auth state changes
+  // Check if user profile exists in Supabase
+  const checkUserProfile = useCallback(async (uid: string): Promise<User | null> => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from("profiles")
+        .select("*")
+        .eq("id", uid)
+        .single();
+
+      if (error || !data) return null;
+
+      return {
+        id: data.id,
+        name: `${data.first_name || ""} ${data.last_name || ""}`.trim() || "User",
+        email: data.email || "",
+        phone: data.phone || "",
+        role: data.role as "customer" | "admin",
+      };
+    } catch (e) {
+      console.error("checkUserProfile error:", e);
+      return null;
+    }
+  }, []);
+
+  // Create a profile in Supabase
+  const createUserProfile = useCallback(async (data: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+  }): Promise<User | null> => {
+    try {
+      const { data: profile, error } = await (supabase as any)
+        .from("profiles")
+        .insert({
+          id: data.id,
+          email: data.email || null,
+          first_name: data.firstName || null,
+          last_name: data.lastName || null,
+          phone: data.phone || null,
+          role: "customer",
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (error || !profile) {
+        console.error("createUserProfile DB error:", error);
+        return null;
+      }
+
+      return {
+        id: profile.id,
+        name: `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "User",
+        email: profile.email || "",
+        phone: profile.phone || "",
+        role: profile.role as "customer" | "admin",
+      };
+    } catch (e) {
+      console.error("createUserProfile error:", e);
+      return null;
+    }
+  }, []);
+
+  // Listen to Firebase auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       setFirebaseUser(fbUser);
 
       if (fbUser) {
         // Try to restore full user profile from localStorage
+        let restoredUser: User | null = null;
         if (typeof window !== "undefined") {
           try {
             const saved = localStorage.getItem("iv-patch-user");
@@ -51,33 +129,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const parsed: User = JSON.parse(saved);
               // Only restore if it matches the current Firebase UID (not the admin profile)
               if (parsed.id === fbUser.uid || parsed.role === "admin") {
-                setUser(parsed);
-              } else {
-                // Firebase user logged in but no matching profile → create a minimal one
-                const minimalUser: User = {
-                  id: fbUser.uid,
-                  name: fbUser.displayName || "User",
-                  email: fbUser.email || "",
-                  phone: fbUser.phoneNumber || "",
-                  role: "customer",
-                };
-                setUser(minimalUser);
-                localStorage.setItem("iv-patch-user", JSON.stringify(minimalUser));
+                restoredUser = parsed;
               }
-            } else {
-              // No saved profile — build one from Firebase data
-              const minimalUser: User = {
-                id: fbUser.uid,
-                name: fbUser.displayName || "User",
-                email: fbUser.email || "",
-                phone: fbUser.phoneNumber || "",
-                role: "customer",
-              };
-              setUser(minimalUser);
+            }
+          } catch {}
+        }
+
+        if (restoredUser) {
+          setUser(restoredUser);
+        } else {
+          // No saved profile or uid mismatch — fetch from Supabase
+          const profile = await checkUserProfile(fbUser.uid);
+          if (profile) {
+            setUser(profile);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("iv-patch-user", JSON.stringify(profile));
+            }
+          } else {
+            // No profile exists in Supabase yet — build a minimal one from Firebase data
+            const minimalUser: User = {
+              id: fbUser.uid,
+              name: fbUser.displayName || "User",
+              email: fbUser.email || "",
+              phone: fbUser.phoneNumber || "",
+              role: "customer",
+            };
+            setUser(minimalUser);
+            if (typeof window !== "undefined") {
               localStorage.setItem("iv-patch-user", JSON.stringify(minimalUser));
             }
-          } catch {
-            // Ignore parse errors
           }
         }
       } else {
@@ -105,11 +185,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [checkUserProfile]);
 
   // Called after successful Firebase phone OTP verification
-  const loginWithPhone = useCallback((phone: string, uid: string) => {
-    const newUser: User = {
+  const loginWithPhone = useCallback((phone: string, uid: string, existingProfile?: User) => {
+    const newUser: User = existingProfile || {
       id: uid,
       name: "User",
       email: "",
@@ -124,8 +204,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Called after successful Google/Apple sign-in via Firebase popup
-  const loginWithSocial = useCallback((fbUser: FirebaseUser) => {
-    const newUser: User = {
+  const loginWithSocial = useCallback((fbUser: FirebaseUser, existingProfile?: User) => {
+    const newUser: User = existingProfile || {
       id: fbUser.uid,
       name: fbUser.displayName || "User",
       email: fbUser.email || "",
@@ -161,16 +241,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Called after OTP verification + registration details form
   const registerUser = useCallback(
     (data: {
+      id?: string;
       phone: string;
       firstName: string;
       lastName: string;
       email: string;
-      gender: string;
+      gender?: string;
     }) => {
-      const uid = firebaseUser?.uid ?? `user_${Date.now()}`;
+      const uid = data.id || firebaseUser?.uid || `user_${Date.now()}`;
       const newUser: User = {
         id: uid,
-        name: `${data.firstName} ${data.lastName}`.trim(),
+        name: `${data.firstName} ${data.lastName}`.trim() || "User",
         email: data.email,
         phone: data.phone,
         role: "customer",
@@ -183,6 +264,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     [firebaseUser]
   );
+
+  const updateUser = useCallback((updatedUser: User) => {
+    setUser(updatedUser);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("iv-patch-user", JSON.stringify(updatedUser));
+    }
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -206,6 +294,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loginWithSocial,
         loginAdmin,
         registerUser,
+        checkUserProfile,
+        createUserProfile,
+        updateUser,
         logout,
         isLoggedIn: !!user,
         isLoading,

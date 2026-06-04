@@ -31,7 +31,7 @@ export default function LoginPage() {
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
-  const { loginWithPhone, loginWithSocial } = useAuth();
+  const { loginWithPhone, loginWithSocial, checkUserProfile, createUserProfile } = useAuth();
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -106,8 +106,26 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const credential = await confirmationResult.confirm(code);
-      loginWithPhone(credential.user.phoneNumber || phone || "", credential.user.uid);
-      router.push("/");
+      const uid = credential.user.uid;
+      const phoneNumber = credential.user.phoneNumber || phone || "";
+      
+      // Check if user profile already exists in Supabase
+      const existingProfile = await checkUserProfile(uid);
+      if (existingProfile) {
+        loginWithPhone(phoneNumber, uid, existingProfile);
+        router.push("/");
+      } else {
+        // Create new minimal profile in Supabase
+        const newProfile = await createUserProfile({
+          id: uid,
+          phone: phoneNumber,
+          email: "",
+          firstName: "",
+          lastName: ""
+        });
+        loginWithPhone(phoneNumber, uid, newProfile || undefined);
+        router.push("/profile");
+      }
     } catch (err: any) {
       setError(friendlyError(err));
       setLoading(false);
@@ -155,8 +173,28 @@ export default function LoginPage() {
     setError(""); setLoading(true);
     try {
       const result = await signInWithPopup(auth, new GoogleAuthProvider());
-      loginWithSocial(result.user);
-      router.push("/");
+      const uid = result.user.uid;
+      
+      const existingProfile = await checkUserProfile(uid);
+      if (existingProfile) {
+        loginWithSocial(result.user, existingProfile);
+        router.push("/");
+      } else {
+        // Pre-fill profile from Google details
+        const email = result.user.email || "";
+        const displayName = result.user.displayName || "";
+        const [firstName = "", ...lastParts] = displayName.split(" ");
+        const lastName = lastParts.join(" ");
+        const newProfile = await createUserProfile({
+          id: uid,
+          email,
+          firstName,
+          lastName,
+          phone: result.user.phoneNumber || ""
+        });
+        loginWithSocial(result.user, newProfile || undefined);
+        router.push("/profile");
+      }
     } catch (err: any) {
       setError(friendlyError(err));
       setLoading(false);
@@ -169,8 +207,28 @@ export default function LoginPage() {
       const provider = new OAuthProvider("apple.com");
       provider.addScope("email"); provider.addScope("name");
       const result = await signInWithPopup(auth, provider);
-      loginWithSocial(result.user);
-      router.push("/");
+      const uid = result.user.uid;
+      
+      const existingProfile = await checkUserProfile(uid);
+      if (existingProfile) {
+        loginWithSocial(result.user, existingProfile);
+        router.push("/");
+      } else {
+        // Pre-fill profile from Apple details
+        const email = result.user.email || "";
+        const displayName = result.user.displayName || "";
+        const [firstName = "", ...lastParts] = displayName.split(" ");
+        const lastName = lastParts.join(" ");
+        const newProfile = await createUserProfile({
+          id: uid,
+          email,
+          firstName,
+          lastName,
+          phone: result.user.phoneNumber || ""
+        });
+        loginWithSocial(result.user, newProfile || undefined);
+        router.push("/profile");
+      }
     } catch (err: any) {
       setError(friendlyError(err));
       setLoading(false);

@@ -10,8 +10,8 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- 1. PROFILES TABLE (mirrors auth.users with extra fields)
 -- ======================================================
 CREATE TABLE IF NOT EXISTS profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    id VARCHAR(255) PRIMARY KEY,
+    email VARCHAR(255) UNIQUE,
     first_name VARCHAR(100),
     last_name VARCHAR(100),
     phone VARCHAR(20),
@@ -48,7 +48,7 @@ CREATE TRIGGER on_auth_user_created
 -- ======================================================
 CREATE TABLE IF NOT EXISTS user_addresses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id VARCHAR(255) NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     address_type VARCHAR(20) DEFAULT 'shipping' CHECK (address_type IN ('shipping', 'billing')),
     first_name VARCHAR(100),
     last_name VARCHAR(100),
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS product_collections (
 -- ======================================================
 CREATE TABLE IF NOT EXISTS carts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    user_id VARCHAR(255) REFERENCES profiles(id) ON DELETE SET NULL,
     session_id VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),

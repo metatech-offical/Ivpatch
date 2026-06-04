@@ -32,7 +32,8 @@ export default function RegisterPage() {
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
-  const { registerUser, loginWithSocial } = useAuth();
+  const { registerUser, loginWithSocial, checkUserProfile, createUserProfile } = useAuth();
+  const [uid, setUid] = useState("");
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -99,8 +100,20 @@ export default function RegisterPage() {
     if (!confirmationResult) { setError("Session expired. Please request a new OTP."); return; }
     setLoading(true);
     try {
-      await confirmationResult.confirm(code);
-      setStep("details");
+      const credential = await confirmationResult.confirm(code);
+      const userUid = credential.user.uid;
+      const userPhone = credential.user.phoneNumber || phone || "";
+      
+      // Check if user already exists
+      const existingProfile = await checkUserProfile(userUid);
+      if (existingProfile) {
+        loginWithSocial(credential.user, existingProfile);
+        router.push("/");
+      } else {
+        setUid(userUid);
+        setPhone(userPhone);
+        setStep("details");
+      }
     } catch (err: any) {
       setError(friendlyError(err));
     } finally {
@@ -143,14 +156,33 @@ export default function RegisterPage() {
   // ─── Details form ─────────────────────────────────────────────────────────
   const handleDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setError("");
-    if (!firstName.trim() || !lastName.trim()) { setError("Please enter your full name."); return; }
-    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) { setError("Please enter a valid email address."); return; }
+    // Email is optional, but if entered, must be valid
+    if (email.trim() && !/\S+@\S+\.\S+/.test(email)) { setError("Please enter a valid email address."); return; }
     setLoading(true);
-    setTimeout(() => {
-      registerUser({ phone: phone || "", firstName, lastName, email, gender });
+    try {
+      const savedProfile = await createUserProfile({
+        id: uid,
+        phone: phone || "",
+        email,
+        firstName,
+        lastName
+      });
+      
+      registerUser({
+        id: uid,
+        phone: phone || "",
+        firstName,
+        lastName,
+        email,
+        gender
+      });
       setLoading(false);
       router.push("/profile");
-    }, 600);
+    } catch (err: any) {
+      console.error(err);
+      setError("Failed to complete registration. Please try again.");
+      setLoading(false);
+    }
   };
 
   // ─── Social sign-ins ──────────────────────────────────────────────────────
@@ -158,7 +190,28 @@ export default function RegisterPage() {
     setError(""); setLoading(true);
     try {
       const r = await signInWithPopup(auth, new GoogleAuthProvider());
-      loginWithSocial(r.user); router.push("/");
+      const userUid = r.user.uid;
+      
+      const existingProfile = await checkUserProfile(userUid);
+      if (existingProfile) {
+        loginWithSocial(r.user, existingProfile);
+        router.push("/");
+      } else {
+        // Pre-fill profile from Google details and redirect to /profile
+        const googleEmail = r.user.email || "";
+        const displayName = r.user.displayName || "";
+        const [first = "", ...lastParts] = displayName.split(" ");
+        const last = lastParts.join(" ");
+        const newProfile = await createUserProfile({
+          id: userUid,
+          email: googleEmail,
+          firstName: first,
+          lastName: last,
+          phone: r.user.phoneNumber || ""
+        });
+        loginWithSocial(r.user, newProfile || undefined);
+        router.push("/profile");
+      }
     } catch (err: any) { setError(friendlyError(err)); setLoading(false); }
   };
 
@@ -167,7 +220,28 @@ export default function RegisterPage() {
     try {
       const p = new OAuthProvider("apple.com"); p.addScope("email"); p.addScope("name");
       const r = await signInWithPopup(auth, p);
-      loginWithSocial(r.user); router.push("/");
+      const userUid = r.user.uid;
+      
+      const existingProfile = await checkUserProfile(userUid);
+      if (existingProfile) {
+        loginWithSocial(r.user, existingProfile);
+        router.push("/");
+      } else {
+        // Pre-fill profile from Apple details and redirect to /profile
+        const appleEmail = r.user.email || "";
+        const displayName = r.user.displayName || "";
+        const [first = "", ...lastParts] = displayName.split(" ");
+        const last = lastParts.join(" ");
+        const newProfile = await createUserProfile({
+          id: userUid,
+          email: appleEmail,
+          firstName: first,
+          lastName: last,
+          phone: r.user.phoneNumber || ""
+        });
+        loginWithSocial(r.user, newProfile || undefined);
+        router.push("/profile");
+      }
     } catch (err: any) { setError(friendlyError(err)); setLoading(false); }
   };
 
@@ -213,12 +287,12 @@ export default function RegisterPage() {
               <form onSubmit={handleDetailsSubmit} className="w-full flex flex-col items-center gap-5">
                 <div className="w-full flex flex-col md:flex-row gap-4">
                   <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                    className="flex-1 h-[58px] bg-white rounded-[12px] px-5 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] text-[#1a1a1a] outline-none placeholder:text-[#999]" required disabled={loading} />
+                    className="flex-1 h-[58px] bg-white rounded-[12px] px-5 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] text-[#1a1a1a] outline-none placeholder:text-[#999]" disabled={loading} />
                   <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)}
-                    className="flex-1 h-[58px] bg-white rounded-[12px] px-5 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] text-[#1a1a1a] outline-none placeholder:text-[#999]" required disabled={loading} />
+                    className="flex-1 h-[58px] bg-white rounded-[12px] px-5 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] text-[#1a1a1a] outline-none placeholder:text-[#999]" disabled={loading} />
                 </div>
                 <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-[58px] bg-white rounded-[12px] px-5 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] text-[#1a1a1a] outline-none placeholder:text-[#999]" required disabled={loading} />
+                  className="w-full h-[58px] bg-white rounded-[12px] px-5 text-[16px] md:text-[18px] font-['Satoshi:Regular',sans-serif] text-[#1a1a1a] outline-none placeholder:text-[#999]" disabled={loading} />
                 <div className="w-full flex items-center gap-6 mt-1">
                   {["Male", "Female", "Other"].map((opt) => (
                     <label key={opt} className="flex items-center gap-2 cursor-pointer select-none" onClick={() => setGender(opt)}>
