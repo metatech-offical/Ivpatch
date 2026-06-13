@@ -2,7 +2,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MissionHeroSection from "@/components/sections/mission/MissionHeroSection";
 import MissionBenefitsStrip from "@/components/sections/mission/MissionBenefitsStrip";
-import MissionSocialsStrip from "@/components/sections/mission/MissionSocialsStrip";
+import SocialsSection from "@/components/sections/SocialsSection";
 import MissionNewsletterSection from "@/components/sections/mission/MissionNewsletterSection";
 
 export default function OurMissionPage() {
@@ -20,7 +20,7 @@ export default function OurMissionPage() {
         {/* 2. Benefits strip – yoga woman background */}
         <MissionBenefitsStrip />
         {/* 3. Socials strip */}
-        <MissionSocialsStrip />
+        <SocialsSection />
         {/* 4. Newsletter */}
         <MissionNewsletterSection />
         {/* 5. Footer */}

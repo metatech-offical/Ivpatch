@@ -4,7 +4,7 @@ import BenefitsHeroSection from "@/components/sections/benefits/BenefitsHeroSect
 import BenefitsHighlightsSection from "@/components/sections/benefits/BenefitsHighlightsSection";
 import BenefitsComparisonSection from "@/components/sections/benefits/BenefitsComparisonSection";
 import BenefitsProductStrip from "@/components/sections/benefits/BenefitsProductStrip";
-import BenefitsSocialsSection from "@/components/sections/benefits/BenefitsSocialsSection";
+import SocialsSection from "@/components/sections/SocialsSection";
 import BenefitsNewsletterSection from "@/components/sections/benefits/BenefitsNewsletterSection";
 
 export default function BenefitsPage() {
@@ -20,7 +20,7 @@ export default function BenefitsPage() {
         <BenefitsHighlightsSection />
         <BenefitsComparisonSection />
         <BenefitsProductStrip />
-        <BenefitsSocialsSection />
+        <SocialsSection />
         <BenefitsNewsletterSection />
         <Footer />
       </div>
